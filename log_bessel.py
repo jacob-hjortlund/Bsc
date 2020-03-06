@@ -123,10 +123,40 @@ def gamma_integral(v, z):
         
     return np.log(integral)+value_at_max
 
-# Trapezoidal rule for integral form as
-# defined in 
+# Trapezoidal rule for cosh integral 
+# form as defined in 
 # https://arxiv.org/pdf/1209.1547.pdf
 
+def logsumexp(x):
+
+	a = np.max(x)
+
+	return a + np.log(np.sum(np.exp(x-a)))
+
+def logcosh(x):
+
+	return x + np.log1p(np.exp(-2*x)) - np.log(2)
+
+def log_cosh_integral(t, v, z):
+
+	return logcosh(v*t) - z * np.cosh(t)
+
+def trap_cosh(v,z):
+
+	approx_max = np.arcsinh(v/z)
+	max_terms = 500
+	h = approx_max / (0.5*max_terms)
+	n = np.arange(0, max_terms, 1)
+
+	res = np.zeros(np.shape(v))
+
+	for i in range(len(v)):
+
+		nh = n*h[i]
+		terms = log_cosh_integral(nh, v[i], z)
+		res[i] = logsumexp + np.log(h)
+
+	return res
 
 ###########################################
 #            METHOD SELECTION             #
