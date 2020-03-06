@@ -109,19 +109,22 @@ def log_gamma_integral_max_t(v, z):
 
 def gamma_integral(v, z):
 
-	value_at_max = log_gamma_integral_max_t(v, z)
+	t_max = log_gamma_integral_max_t(v, z)
+	value_at_max = log_gamma_integral_func(t_max, v, z)
 
-	def f(t, v, z):
+	def f(t, v, z, val_max):
 
-		log_value = log_gamma_integral_func(t, v, z, value_at_max)
+		log_value = log_gamma_integral_func(t, v, z, val_max)
 
 		return 0.5 * np.exp(log_value)
 
+	integral = np.zeros(np.shape(v))
+
 	for i, v_tmp in enumerate(v):
-        
-        integral[i] = quad(inner_integral_rothwell,0,np.inf,args=(v_tmp, z))[0]
-        
-    return np.log(integral)+value_at_max
+
+		integral[i] = quad(f,0,np.inf,args=(v_tmp, z, value_at_max[i]))[0]
+
+	return np.log(integral)+value_at_max
 
 # Trapezoidal rule for cosh integral 
 # form as defined in 
@@ -154,7 +157,7 @@ def trap_cosh(v,z):
 
 		nh = n*h[i]
 		terms = log_cosh_integral(nh, v[i], z)
-		res[i] = logsumexp + np.log(h)
+		res[i] = logsumexp(terms) + np.log(h[i])
 
 	return res
 
