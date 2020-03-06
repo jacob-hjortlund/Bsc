@@ -58,18 +58,21 @@ def rothwell(v, z):
 	lead = rothwell_lead(v, z)
 	log_integral = compute_log_integral(v, z)
 
+	#print('rothwell')
+
 	return lead + log_integral
 
-# Asymptotic expansion at large v, Eq. 1.10
-# of Temme, Journal of Computational
+# Asymptotic expansion at large v compared to z,
+# Eq. 1.10 of Temme, Journal of Computational
 # Physic, vol 19, 324 (1975)
 # https://doi.org/10.1016/0021-9991(75)90082-0
 
 def asymptotic_large_v(v, z):
 
+	#print('asymp large v')
 	return lg(v) - np.log(2) + v * (np.log(2)-np.log(z))
 
-# Asymptotic expansion at large z,
+# Asymptotic expansion at large z compared to v,
 # Eq. 10.40.2 of https://dlmf.nist.gov/10.40
 
 def asymptotic_large_z(v, z):
@@ -86,7 +89,39 @@ def asymptotic_large_z(v, z):
         a_k_z_k *= (v_squared_4-(2 * k -1)**2) / (k * z * 8)
         series_sum += a_k_z_k
 
+    #print('asymp large z')
     return base + np.log(series_sum)
+
+
+# Gamma integral-like formulation, with
+# maximum moved outside of integral.
+# TO DO: Need to find source for this 
+# representation, believe it to be a
+# reformulation of Rothwell Eq. 24.
+
+def log_gamma_integral_func(t, v, z, log_offset=0):
+
+	return (v - 1) * np.log(t) - 0.5 * z * (t + 1/t) - log_offset
+
+def log_gamma_integral_max_t(v, z):
+
+	return (np.sqrt(v**2 - 2*v + z**2 + 1)+v-1)/z
+
+def gamma_integral(v, z):
+
+	value_at_max = log_gamma_integral_max_t(v, z)
+
+	def f(t, v, z):
+
+		log_value = log_gamma_integral_func(t, v, z, value_at_max)
+
+		return 0.5 * np.exp(log_value)
+
+	for i, v_tmp in enumerate(v):
+        
+        integral[i] = quad(inner_integral_rothwell,0,np.inf,args=(v_tmp, z))[0]
+        
+    return np.log(integral)+value_at_max
 
 # Trapezoidal rule for integral form as
 # defined in 
@@ -114,9 +149,9 @@ def method_indices(v, z):
 
     i_rothwell = np.logical_and(rothwell_1, rothwell_2)
 
-    i_asymp_v = np.logical_and(v > z, ~i_rothwell)
+    i_asymp_v = np.logical_and(np.sqrt(v+1) > z, ~i_rothwell)
     
-    i_asymp_z = np.logical_and(np.logical_and(v > 10, ~i_rothwell),
+    i_asymp_z = np.logical_and(~i_rothwell,
                                ~i_asymp_v)
     
 
@@ -136,6 +171,8 @@ def log_bessel_k(v, z):
     
     for method, index in zip(methods, indeces):
 
+        #print(indeces)
+        #print(v)
         res[index] = method(v[index], z)
 
     return res, indeces
