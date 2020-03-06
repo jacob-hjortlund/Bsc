@@ -19,7 +19,7 @@ def rothwell_lead(v, z):
 
 	lead = 0.5*np.log(np.pi)-lg(v+0.5)-v*np.log(2*z)-z
 
-	if np.is_inf(lead):
+	if np.isinf(lead):
 
 		lead = -z + 0.5 * np.log(0.5*np.pi / z)
 
@@ -86,69 +86,58 @@ def asymptotic_large_z(v, z):
 
 	return base + np.log(series_sum)
 
-
+# Trapezoidal rule for integral form as
+# defined in 
+# https://arxiv.org/pdf/1209.1547.pdf
 
 
 ###########################################
-#         CHOOSING AMONG FORMULAE         #
+#            METHOD SELECTION             #
 ###########################################
 
+def rothwell_log_z_boundary(v):
+    
+    rothwell_max_log_z_over_v = 300
 
-def choose_computation(v, z):
+    return rothwell_max_log_z_over_v / (v-0.5)-np.log(2)
 
-	gamma_max_z = 200
-	gamma_max_v = 3
-	gamma_low_z = 0.01
-	gamma_low_v = 0.001
+def method_indices(v, z):
 
-	asymp_v_slope = 1
-	asymp_v_intercept = 8
+    rothwell_max_v = 50
+    rothwell_max_z = 100000
+    rothwell_max_log_z_over_v = 300
 
-	asymp_z_slope = 1
-	asymp_z_intercept = -3
-	asymp_z_log_min_v = 10
+    rothwell_1 = v < rothwell_max_v
+    rothwell_2 = np.log(z) < rothwell_log_z_boundary(v)
 
-	rothwell_max_v = 50
-	rothwell_max_z = 100000
-	rothwell_max_log_z_over_v = 300
+    i_rothwell = np.logical_and(rothwell_1, rothwell_2)
 
-	trapezoid_min_v = 100
+    i_asymp_v = np.logical_and(v > z, ~i_rothwell)
+    
+    i_asymp_z = np.logical_and(np.logical_and(v > 10, ~i_rothwell),
+                               ~i_asymp_v)
+    
 
-	log_v, log_z = np.log(v), np.log(z)
+    return i_rothwell, i_asymp_z, i_asymp_v
 
-	def rothwell_log_z_boundary(v):
+###########################################
+#           TOP LEVEL FUNCTION            #
+###########################################
 
-		return rothwell_max_log_z_over_v / (v-0.5)-np.log(2)
+def log_bessel_k(v, z):
+
+	res = np.zeros(np.shape(v))
+	methods = [rothwell, asymptotic_large_z, asymptotic_large_v]
+
+	indeces = method_indices(v, z)
+	
+	for method, index in zip(methods, indeces):
+
+		res[index] = method(v[index], z)
+
+	return res
 
 
-	if v < gamma_low_v and z < gamma_low_z:
 
-		return rothwell
 
-	if v < gamma_max_v and z < gamma_max_z:
-
-		return integral_gamma
-
-	rothwell_check = v <= 0.5 or log_z < rothwell_log_z_boundary(v)
-	if v < rothwell_max_z and z rothwell_max_z and rothwell_check:
-
-		return rothwell
-
-	trap_check1 = log_v < asymp_v_slope * log_z + asymp_v_intercept
-	trap_check2 = log_v > asymp_z_slope * log_z + asymp_z_intercept
-	trap_check3 = v > trapezoid_min_v or v > z
-
-	if trap_check1 and trap_check2 and trap_check3:
-
-		return trapezoid_cosh
-
-	if v>z:
-
-		return asymp_v
-
-	if v > asymp_z_log_min_v:
-
-		return asymp_z_log
-
-	else return asymp_z
 
