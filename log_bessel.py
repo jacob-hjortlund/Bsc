@@ -173,22 +173,52 @@ def rothwell_log_z_boundary(v):
 
 def method_indices(v, z):
 
+	gamma_max_z = 200
+	gamma_max_v = 3
+	gamma_low_z = 0.01
+	gamma_low_v = 0.001
+
+	asymp_v_slope = 1
+	asymp_v_intercept = 8
+
+	asymp_z_slope = 1
+	asymp_z_intercept = -3
+	asymp_z_log_min_v
+
     rothwell_max_v = 50
     rothwell_max_z = 100000
     rothwell_max_log_z_over_v = 300
 
+    trapezoid_min_v = 100
+
+    i_rothwell_low = np.logical_and( v < gamma_low_v, z < gamma_low_z )
+
+    gamma_1 = v < gamma_max_v
+    gamma_2 = z < gamma_max_z
+    gamma_logic = np.array((gamma_1, gamma_2, ~i_rothwell_low))
+    i_gamma = np.logical_and.reduce(gamma_logic)
+
     rothwell_1 = v < rothwell_max_v
-    rothwell_2 = np.log(z) < rothwell_log_z_boundary(v)
+    rothwell_2 = z < rothwell_max_z
+    rothwell_3 = np.logical_or(v <= 0.5, np.log(z) < rothwell_log_z_boundary(z))
+    rothwell_logic = np.array((rothwell_1, rothwell_2, rothwell_3, ~i_gamma, ~i_rothwell_low))
+    i_rothwell = np.logical_and.reduce(rothwell_logic)
 
-    i_rothwell = np.logical_and(rothwell_1, rothwell_2)
+    trap_1 = np.log(v) < (asymp_v_slope * np.log(z) + asymp_v_intercept)
+    trap_2 = np.log(v) > (asymp_z_slope * np.log(z) + asymp_z_intercept)
+    trap_2 = np.logical_or(v > trapezoid_min_v, v > z)
+    trap_logic = np.array((trap_1, trap_2, trap_3, ~i_rothwell, ~i_gamma, ~i_rothwell_low))
+    i_trap = np.logical_and.reduce(trap_logic)
 
-    i_asymp_v = np.logical_and(np.sqrt(v+1) > z, ~i_rothwell)
+    asymp_v_1 = v > z
+    asymp_v_logic = np.array((asymp_v_1, ~i_trap, ~i_rothwell, ~i_gamma, ~i_rothwell_low))
+    i_asymp_v = np.logical_and.reduce(asymp_v_logic)
+
+    asymp_z_logic = np.array((~i_asymp_v, ~i_trap, ~i_rothwell, ~i_gamma, ~i_rothwell_low))
+    i_asymp_z = np.logical_and.reduce(asymp_z_logic)
     
-    i_asymp_z = np.logical_and(~i_rothwell,
-                               ~i_asymp_v)
-    
 
-    return i_rothwell, i_asymp_z, i_asymp_v
+    return i_rothwell_low, i_gamma, i_rothwell, i_trap, i_asymp_v, i_asymp_z
 
 ###########################################
 #           TOP LEVEL FUNCTION            #
