@@ -191,29 +191,31 @@ def method_indices(v, z):
 
 	trapezoid_min_v = 100
 
-	i_rothwell_low = ((v < gamma_low_v) & (z < gamma_low_z)) | ((v == 1.0) & (z < gamma_low_z))
+	i_rothwell_low = (v < gamma_low_v) & (z < gamma_low_z)
 
-	#gamma_1 = v < gamma_max_v
-	#gamma_2 = z < gamma_max_z
-	#i_gamma = gamma_1 & gamma_2 & ~i_rothwell_low
+	i_asymp_v_low = (np.abs(v-1) <= 1) & (z < 1E-3)
+
+	gamma_1 = v < gamma_max_v
+	gamma_2 = z < gamma_max_z
+	i_gamma = gamma_1 & gamma_2 & ~i_rothwell_low & ~i_asymp_v_low
 
 	rothwell_1 = v < rothwell_max_v
 	rothwell_2 = z < rothwell_max_z
 	rothwell_3 = (v <= 0.5) | (np.log(z) < rothwell_log_z_boundary(z))
-	i_rothwell = rothwell_1 & rothwell_2 & rothwell_3 & ~i_rothwell_low
+	i_rothwell = rothwell_1 & rothwell_2 & rothwell_3 & ~i_gamma & ~i_rothwell_low & ~i_asymp_v_low
 
 	trap_1 = np.log(v) < (asymp_v_slope * np.log(z) + asymp_v_intercept)
 	trap_2 = np.log(v) > (asymp_z_slope * np.log(z) + asymp_z_intercept)
 	trap_3 = (v > trapezoid_min_v) | (v > z)
-	i_trap = trap_1 & trap_2 & trap_3 & ~i_rothwell & ~i_rothwell_low
+	i_trap = trap_1 & trap_2 & trap_3 & ~i_rothwell & ~i_gamma & ~i_rothwell_low & ~i_asymp_v_low
 
 	asymp_v_1 = v > z
-	i_asymp_v = asymp_v_1 & ~i_trap & ~i_rothwell &  ~i_rothwell_low
+	i_asymp_v = asymp_v_1 & ~i_trap & ~i_rothwell & ~i_gamma &  ~i_rothwell_low & ~i_asymp_v_low
 
-	i_asymp_z = ~i_asymp_v & ~i_trap & ~i_rothwell & ~i_rothwell_low
+	i_asymp_z = ~i_asymp_v & ~i_trap & ~i_rothwell & ~i_gamma & ~i_rothwell_low & ~i_asymp_v_low
 
 
-	return i_rothwell_low, i_rothwell, i_trap, i_asymp_v, i_asymp_z
+	return i_rothwell_low, i_asymp_v_low, i_gamma, i_rothwell, i_trap, i_asymp_v, i_asymp_z
 
 ###########################################
 #           TOP LEVEL FUNCTION            #
@@ -223,8 +225,8 @@ def log_bessel_k(v, z):
     
     v = np.abs(v)
     res = np.zeros(np.shape(v))
-    methods = [rothwell, rothwell, trap_cosh, asymptotic_large_v,
-    		   asymptotic_large_z]
+    methods = [rothwell, asymptotic_large_v, gamma_integral, rothwell, trap_cosh,
+    		   asymptotic_large_v, asymptotic_large_z]
 
     indeces = method_indices(v, z)
     
