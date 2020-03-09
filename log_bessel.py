@@ -1,11 +1,21 @@
 import numpy as np
 import scipy as sp
 from scipy.special import loggamma as lg
+from scipy.special import kv
 from scipy.integrate import quad, quadrature
 
 ###########################################
 #         APPROXIMATION FORMULAE          #
 ###########################################
+
+
+# SciPy modified bessel function of the 
+# second kind, valid in regimes where
+# z < 200 and v < 700.
+
+def scipy_bessel(v, z):
+
+	return np.log(kv(v, z))
 
 
 # Rothwell approach for small z, based on
@@ -109,8 +119,11 @@ def log_gamma_integral_max_t(v, z):
 
 def gamma_integral(v, z):
 
-	t_max = log_gamma_integral_max_t(v, z)
-	value_at_max = log_gamma_integral_func(t_max, v, z)
+	v_tmp = np.longdouble(v)
+	z_tmp = np.longdouble(z)
+
+	t_max = log_gamma_integral_max_t(v_tmp, z_tmp)
+	value_at_max = log_gamma_integral_func(t_max, v_tmp, z_tmp)
 
 	def f(t, v, z, val_max):
 
@@ -120,9 +133,9 @@ def gamma_integral(v, z):
 
 	integral = np.zeros(np.shape(v))
 
-	for i, v_tmp in enumerate(v):
+	for i, v_ in enumerate(v_tmp):
 
-		integral[i] = quad(f,0,np.inf,args=(v_tmp, z, value_at_max[i]))[0]
+		integral[i] = quad(f,0,np.inf,args=(v_, z_tmp, value_at_max[i]))[0]
 
 	return np.log(integral)+value_at_max
 
@@ -173,10 +186,8 @@ def rothwell_log_z_boundary(v):
 
 def method_indices(v, z):
 
-	gamma_max_z = 200
-	gamma_max_v = 3
-	gamma_low_z = 0.01
-	gamma_low_v = 0.001
+	scipy_max_z = 200
+	scipy_max_v = 700
 
 	asymp_v_slope = 1
 	asymp_v_intercept = 8
@@ -191,31 +202,27 @@ def method_indices(v, z):
 
 	trapezoid_min_v = 100
 
-	i_rothwell_low = (v < gamma_low_v) & (z < gamma_low_z)
-
-	i_asymp_v_low = (np.abs(v-1) <= 1) & (z < 1E-3)
-
-	gamma_1 = v < gamma_max_v
-	gamma_2 = z < gamma_max_z
-	i_gamma = gamma_1 & gamma_2 & ~i_rothwell_low & ~i_asymp_v_low
+	scipy_1 = v < scipy_max_v
+	scipy_2 = z < scipy_max_z
+	i_scipy = scipy_1 & scipy_2
 
 	rothwell_1 = v < rothwell_max_v
 	rothwell_2 = z < rothwell_max_z
 	rothwell_3 = (v <= 0.5) | (np.log(z) < rothwell_log_z_boundary(z))
-	i_rothwell = rothwell_1 & rothwell_2 & rothwell_3 & ~i_gamma & ~i_rothwell_low & ~i_asymp_v_low
+	i_rothwell = rothwell_1 & rothwell_2 & rothwell_3 & ~i_scipy   #& ~i_gamma & ~i_rothwell_low & ~i_asymp_v_low
 
 	trap_1 = np.log(v) < (asymp_v_slope * np.log(z) + asymp_v_intercept)
 	trap_2 = np.log(v) > (asymp_z_slope * np.log(z) + asymp_z_intercept)
 	trap_3 = (v > trapezoid_min_v) | (v > z)
-	i_trap = trap_1 & trap_2 & trap_3 & ~i_rothwell & ~i_gamma & ~i_rothwell_low & ~i_asymp_v_low
+	i_trap = trap_1 & trap_2 & trap_3 & ~i_rothwell & ~i_scipy     #& ~i_gamma & ~i_rothwell_low & ~i_asymp_v_low
 
 	asymp_v_1 = v > z
-	i_asymp_v = asymp_v_1 & ~i_trap & ~i_rothwell & ~i_gamma &  ~i_rothwell_low & ~i_asymp_v_low
+	i_asymp_v = asymp_v_1 & ~i_trap & ~i_rothwell & ~i_scipy      #& ~i_gamma &  ~i_rothwell_low & ~i_asymp_v_low
 
-	i_asymp_z = ~i_asymp_v & ~i_trap & ~i_rothwell & ~i_gamma & ~i_rothwell_low & ~i_asymp_v_low
+	i_asymp_z = ~i_asymp_v & ~i_trap & ~i_rothwell & ~i_scipy #& ~i_gamma & ~i_rothwell_low & ~i_asymp_v_low
 
 
-	return i_rothwell_low, i_asymp_v_low, i_gamma, i_rothwell, i_trap, i_asymp_v, i_asymp_z
+	return i_scipy, i_rothwell, i_trap, i_asymp_v, i_asymp_z
 
 ###########################################
 #           TOP LEVEL FUNCTION            #
@@ -225,7 +232,7 @@ def log_bessel_k(v, z):
     
     v = np.abs(v)
     res = np.zeros(np.shape(v))
-    methods = [rothwell, asymptotic_large_v, gamma_integral, rothwell, trap_cosh,
+    methods = [i_scipy, rothwell, trap_cosh,
     		   asymptotic_large_v, asymptotic_large_z]
 
     indeces = method_indices(v, z)
