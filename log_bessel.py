@@ -187,7 +187,7 @@ def rothwell_log_z_boundary(v):
 def method_indices(v, z):
 
 	scipy_max_z = 200
-	scipy_max_v = 700
+	scipy_max_v = 36
 
 	asymp_v_slope = 1
 	asymp_v_intercept = 8
@@ -200,7 +200,7 @@ def method_indices(v, z):
 	rothwell_max_z = 100000
 	rothwell_max_log_z_over_v = 300
 
-	trapezoid_min_v = 100
+	trapezoid_min_v = 50
 
 	scipy_1 = v < scipy_max_v
 	scipy_2 = z < scipy_max_z
@@ -232,7 +232,7 @@ def log_bessel_k(v, z):
     
     v = np.abs(v)
     res = np.zeros(np.shape(v))
-    methods = [i_scipy, rothwell, trap_cosh,
+    methods = [scipy_bessel, rothwell, trap_cosh,
     		   asymptotic_large_v, asymptotic_large_z]
 
     indeces = method_indices(v, z)
