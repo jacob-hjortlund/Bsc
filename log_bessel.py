@@ -15,7 +15,9 @@ from scipy.integrate import quad, quadrature
 
 def scipy_bessel(v, z):
 
-	return np.log(kv(v, z))
+	res = np.log(kv(v,z))
+
+	return res
 
 
 # Rothwell approach for small z, based on
@@ -68,9 +70,9 @@ def rothwell(v, z):
 	lead = rothwell_lead(v, z)
 	log_integral = compute_log_integral(v, z)
 
-	#print('rothwell')
+	res = lead + log_integral
 
-	return lead + log_integral
+	return res
 
 # Asymptotic expansion at large v compared to z,
 # Eq. 1.10 of Temme, Journal of Computational
@@ -79,8 +81,10 @@ def rothwell(v, z):
 
 def asymptotic_large_v(v, z):
 
+	res = lg(v) - np.log(2) + v * (np.log(2)-np.log(z))
+
 	#print('asymp large v')
-	return lg(v) - np.log(2) + v * (np.log(2)-np.log(z))
+	return res
 
 # Asymptotic expansion at large z compared to v,
 # Eq. 10.40.2 of https://dlmf.nist.gov/10.40
@@ -99,8 +103,10 @@ def asymptotic_large_z(v, z):
         a_k_z_k *= (v_squared_4-(2 * k -1)**2) / (k * z * 8)
         series_sum += a_k_z_k
 
+    res = base + np.log(series_sum)
+
     #print('asymp large z')
-    return base + np.log(series_sum)
+    return res
 
 
 # Gamma integral-like formulation, with
@@ -186,8 +192,9 @@ def rothwell_log_z_boundary(v):
 
 def method_indices(v, z):
 
-	scipy_max_z = 200
-	scipy_max_v = 36
+	scipy_max_z = 695
+	scipy_slope = 0.1
+	scipy_intercept = np.log(127)
 
 	asymp_v_slope = 1
 	asymp_v_intercept = 8
@@ -200,9 +207,9 @@ def method_indices(v, z):
 	rothwell_max_z = 100000
 	rothwell_max_log_z_over_v = 300
 
-	trapezoid_min_v = 50
+	trapezoid_min_v = 100
 
-	scipy_1 = v < scipy_max_v
+	scipy_1 = np.log(v) < (scipy_intercept + scipy_slope * np.log(z))
 	scipy_2 = z < scipy_max_z
 	i_scipy = scipy_1 & scipy_2
 
@@ -243,7 +250,7 @@ def log_bessel_k(v, z):
         #print(v)
         res[index] = method(v[index], z)
 
-    return res, indeces
+    return res
 
 
 
