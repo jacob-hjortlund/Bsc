@@ -30,8 +30,10 @@ def scipy_bessel(v, z):
 def rothwell_lead(v, z):
 
     lead = 0.5*np.log(np.pi)-lg(v+0.5)-v*np.log(2*z)-z
+
+    i_inf = np.isinf(lead)
     
-    lead[np.isinf(lead)] = -z + 0.5 * np.log(0.5*np.pi / z)
+    lead[i_inf] = -z[i_inf] + 0.5 * np.log(0.5*np.pi / z[i_inf])
 
     return lead
 
@@ -57,20 +59,24 @@ def inner_integral_rothwell(u, v, z):
 
 def compute_log_integral(v, z):
     
-    integral = np.zeros(np.shape(v))
+    integral = np.zeros(np.shape(z))
     
-    for i, v_tmp in enumerate(v):
+    for i, z_tmp in enumerate(z):
         
-        integral[i] = quad(inner_integral_rothwell,0,1,args=(v_tmp, z))[0]
+        integral[i] = quad(inner_integral_rothwell,0,1,args=(v, z_tmp))[0]
         
     return np.log(integral)
 
 def rothwell(v, z):
 
-	lead = rothwell_lead(v, z)
-	log_integral = compute_log_integral(v, z)
+	z_shape = np.shape(z)
+	z_flat = z.flatten()
+
+	lead = rothwell_lead(v, z_flat)
+	log_integral = compute_log_integral(v, z_flat)
 
 	res = lead + log_integral
+	res = np.reshape(res, z_shape)
 
 	return res
 
@@ -83,7 +89,6 @@ def asymptotic_large_v(v, z):
 
 	res = lg(v) - np.log(2) + v * (np.log(2)-np.log(z))
 
-	#print('asymp large v')
 	return res
 
 # Asymptotic expansion at large z compared to v,
@@ -105,7 +110,6 @@ def asymptotic_large_z(v, z):
 
     res = base + np.log(series_sum)
 
-    #print('asymp large z')
     return res
 
 
@@ -165,18 +169,23 @@ def log_cosh_integral(t, v, z):
 
 def trap_cosh(v,z):
 
-	approx_max = np.arcsinh(v/z)
+	z_shape = np.shape(z)
+	z_flat = z.flatten()
+
+	approx_max = np.arcsinh(v/z_flat)
 	max_terms = 500
 	h = approx_max / (0.5*max_terms)
 	n = np.arange(0, max_terms, 1)
 
-	res = np.zeros(np.shape(v))
+	res = np.zeros(np.shape(z_flat))
 
-	for i in range(len(v)):
+	for i in range(len(z_flat)):
 
 		nh = n*h[i]
-		terms = log_cosh_integral(nh, v[i], z)
+		terms = log_cosh_integral(nh, v, z_flat[i])
 		res[i] = logsumexp(terms) + np.log(h[i])
+
+	res = np.reshape(res, z_shape)
 
 	return res
 
@@ -238,7 +247,7 @@ def method_indices(v, z):
 def log_bessel_k(v, z):
     
     v = np.abs(v)
-    res = np.zeros(np.shape(v))
+    res = np.zeros(np.shape(z))
     methods = [scipy_bessel, rothwell, trap_cosh,
     		   asymptotic_large_v, asymptotic_large_z]
 
@@ -246,9 +255,7 @@ def log_bessel_k(v, z):
     
     for method, index in zip(methods, indeces):
 
-        #print(indeces)
-        #print(v)
-        res[index] = method(v[index], z)
+        res[index] = method(v, z[index])
 
     return res
 
