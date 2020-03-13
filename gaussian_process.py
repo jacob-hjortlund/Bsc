@@ -1,7 +1,7 @@
 import numpy as np
+import log_bessel as lb
 from scipy.linalg import cholesky, inv
-from scipy.special import gamma as gamma_func
-from scipy.special import kv
+from scipy.special import loggamma as lg
 
 def round_sig(x, sig=1):
     """
@@ -33,15 +33,13 @@ def local_periodic(theta,x):
     return rbf(theta,x) * periodic(theta,x)
 
 def matern(theta, x):
-    
-    if theta[1] > 18:
-        return rbf([theta[0], theta[2]], x)
-    else:
-        u = np.sqrt(2 * theta[1]) * abs(np.subtract.outer(x,x) / theta[2])
-        u[u == 0.0] += np.finfo(float).eps
-        K = theta[0] * 2**(1-theta[1]) / gamma_func(theta[1]) * (u)**theta[1] * kv(theta[1], u)
 
-        return K
+    u = np.sqrt(2 * theta[1]) * abs(np.subtract.outer(x,x) / theta[2])
+    u[u == 0.0] += np.finfo(float).eps
+
+    log_K = 2*np.log(theta[0]) + (1-theta[1])*np.log(2) - lg(theta[1]) + theta[1]*np.log(u) + lb.log_bessel_k(theta[1], u)
+
+    return np.exp(log_K)
 
 def GP(kernel, theta, data, mu_prior=[], sigma=[]):
     
@@ -66,8 +64,8 @@ def GP(kernel, theta, data, mu_prior=[], sigma=[]):
     	ch_K_XX = cholesky(K_XX, lower=True)
     except:
         np.save(path + f'{kernel_name}_failed_matrix.npy', K_XX)
-    	print(K_XX)
-    	print(np.count_nonzero(K_XX<=0))
+        print(K_XX)
+        print(np.count_nonzero(K_XX<=0))
 
     K_XX_inv = inv(ch_K_XX.T) @ inv(ch_K_XX)#inv(K[:n,:n]+np.diag(sigma**2))
     K_XXT = K[:n,n:]
