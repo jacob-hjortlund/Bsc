@@ -16,7 +16,7 @@ def round_sig(x, sig=1):
            Number of sig. figures
     """
 
-    i = sig-int(np.floor(np.log10(abs(x))))-1
+    i = sig-int(np.floor(np.log10(np.abs(x))))-1
     return np.around(x, i), i
 
 
@@ -34,7 +34,7 @@ def local_periodic(theta,x):
 
 def matern(theta, x):
 
-    u = np.sqrt(2 * theta[1]) * abs(np.subtract.outer(x,x) / theta[2])
+    u = np.sqrt(2 * theta[1]) * np.abs(np.subtract.outer(x,x) / theta[2])
     u[u == 0.0] += np.finfo(float).eps
 
     log_K = 2*np.log(theta[0]) + (1-theta[1])*np.log(2) - lg(theta[1]) + theta[1]*np.log(u) + lb.log_bessel_k(theta[1], u)

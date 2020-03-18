@@ -45,7 +45,7 @@ def matern_logprior(theta, data):
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])#np.log10(2*np.max(diff))
     
-    return uniform.logpdf(s, -2, 4) + uniform.logpdf(nu, -2, 4) + uniform.logpdf(l, p_min, p_max-p_min)
+    return uniform.logpdf(s, -2, 4) + uniform.logpdf(nu, -2, 3) + uniform.logpdf(l, p_min, p_max-p_min)
 
 def rbf_inisamples(Nens, data):
     
@@ -71,7 +71,7 @@ def matern_inisamples(Nens, data):
     p_max = np.log10(data[1][-1]-data[1][0])
     
     return np.vstack((uniform.rvs(-2, 4, size=Nens),
-    				  uniform.rvs(-2, 4, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens))).T
+    				  uniform.rvs(-2, 3, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens))).T
 
 def rbf_samples(Nens, data):
     

@@ -29,7 +29,7 @@ def scipy_bessel(v, z):
 
 def rothwell_lead(v, z):
 
-    lead = 0.5*np.log(np.pi)-lg(v+0.5)-v*np.log(2*z)-z
+    lead = 0.5*np.log(np.pi)-np.abs(lg(v+0.5))-v*np.log(2*z)-z
 
     i_inf = np.isinf(lead)
     
@@ -87,7 +87,7 @@ def rothwell(v, z):
 
 def asymptotic_large_v(v, z):
 
-	res = lg(v) - np.log(2) + v * (np.log(2)-np.log(z))
+	res = np.abs(lg(v)) - np.log(2) + v * (np.log(2)-np.log(z))
 
 	return res
 
