@@ -164,11 +164,13 @@ with MPIPool() as pool:
 	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool)#, args=argslist)
 	sampler.run_mcmc(inisamples, Nsamples+Nburnin)
 
-
 acl = sampler.get_autocorr_time(c=1, quiet=True)
 print("The autocorrelation lengths are %s" %(acl))
 
 samples = sampler.chain[:, Nburnin::int(max(acl)), :].reshape((-1, ndims))
 print("Number of independent samples is {}".format(len(samples)))
+
+if not os.path.isdir(path):
+    os.mkdir(path)
 
 np.save(path + f'{kernel_name}.npy', samples)
