@@ -62,7 +62,7 @@ def rbf_inisamples(Nens, data):
     sigma_max = np.log10(np.max(data[5]))
     
     return np.vstack((uniform.rvs(-2,4, size=Nens),
-                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min))).T
+                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens))).T
 
 def local_periodic_inisamples(Nens, data):
     
@@ -73,7 +73,7 @@ def local_periodic_inisamples(Nens, data):
     sigma_max = np.log10(np.max(data[5]))
     
     return np.vstack((uniform.rvs(-2,4, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens),
-                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min))).T
+                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens))).T
 
 def matern_inisamples(Nens, data):
     
@@ -84,7 +84,7 @@ def matern_inisamples(Nens, data):
     sigma_max = np.log10(np.max(data[5]))
     
     return np.vstack((uniform.rvs(-2, 4, size=Nens), uniform.rvs(-2, 3, size=Nens),
-                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min))).T
+                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens))).T
 
 def rbf_samples(Nens, data):
     
