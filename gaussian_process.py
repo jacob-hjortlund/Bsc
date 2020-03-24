@@ -56,10 +56,14 @@ def GP(kernel, theta, data, mu_prior=[], sigma=[]):
         sigma = np.zeros(n)
     if len(mu_prior)==0:
         mu_prior = np.zeros(n)
-    
+
+    # Adding white noise as parameter
+
+    sigma_updated = np.sqrt(sigma**2 + theta[-1]**2)
+
     # Sub-matrices of joint distribution, using cholesky decomp. for inversion
     K_XTX = K[n:,:n]
-    K_XX = K[:n,:n]+np.diag(sigma**2)
+    K_XX = K[:n,:n]+np.diag(sigma_updated**2)
     try:
     	ch_K_XX = cholesky(K_XX, lower=True)
     except:
