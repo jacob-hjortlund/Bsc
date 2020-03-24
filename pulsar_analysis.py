@@ -7,7 +7,7 @@ from schwimmbad import MPIPool
 import sys
 import os
 
-def loglikelihood(theta, data, kernel=rbf):
+def loglikelihood(theta, data, kernel=gp.rbf):
     
     """Data has structure (XT, X, y, yT, sigmaT, sigma)"""
     # Define global variables
