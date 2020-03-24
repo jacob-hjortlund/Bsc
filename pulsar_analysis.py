@@ -22,56 +22,69 @@ def loglikelihood(theta, data, kernel=rbf):
 
 def rbf_logprior(theta, data):
     
-    s, l = theta
+    s, l, sigma = theta
     diff = np.diff(data[1])
-    p_min = np.log10(2*np.min(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])#np.log10(2*np.max(diff))
+    l_min = np.log10(2*np.min(diff))
+    l_max = np.log10(data[1][-1]-data[1][0])
+    sigma_min = np.log10(np.min(data[5]))
+    sigma_max = np.log10(np.max(data[5]))
     
-    return uniform.logpdf(s, -2, 4) + uniform.logpdf(l, p_min, p_max-p_min)
+    return uniform.logpdf(s, -2, 4) + uniform.logpdf(l, l_min, p_max-l_min) + uniform.logpdf(sigma, sigma_min, sigma_max-sigma_min)
 
 def local_periodic_logprior(theta, data):
     
-    s, l, p = theta
+    s, l, p, sigma = theta
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])#np.log10(2*np.min(diff))
+    p_max = np.log10(data[1][-1]-data[1][0])
+    sigma_min = np.log10(np.min(data[5]))
+    sigma_max = np.log10(np.max(data[5]))
     
-    return uniform.logpdf(s, -2, 4) + uniform.logpdf(l, p_min, p_max-p_min) + uniform.logpdf(p, p_min, p_max-p_min)
+    return uniform.logpdf(s, -2, 4) + uniform.logpdf(l, p_min, p_max-p_min) + uniform.logpdf(p, p_min, p_max-p_min) + uniform.logpdf(sigma, sigma_min, sigma_max-sigma_min)
 
 def matern_logprior(theta, data):
     
-    s, nu, l = theta
+    s, nu, l, sigma = theta
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])#np.log10(2*np.max(diff))
+    p_max = np.log10(data[1][-1]-data[1][0])
+    sigma_min = np.log10(np.min(data[5]))
+    sigma_max = np.log10(np.max(data[5]))
     
-    return uniform.logpdf(s, -2, 4) + uniform.logpdf(nu, -2, 3) + uniform.logpdf(l, p_min, p_max-p_min)
+    return uniform.logpdf(s, -2, 4) + uniform.logpdf(nu, -2, 3) + uniform.logpdf(l, p_min, p_max-p_min) + uniform.logpdf(sigma, sigma_min, sigma_max-sigma_min)
 
 def rbf_inisamples(Nens, data):
     
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])#np.log10(2*np.max(diff))
+    p_max = np.log10(data[1][-1]-data[1][0])
+    sigma_min = np.log10(np.min(data[5]))
+    sigma_max = np.log10(np.max(data[5]))
     
-    return np.vstack((uniform.rvs(-2,4, size=Nens),uniform.rvs(p_min, p_max-p_min, size=Nens))).T
+    return np.vstack((uniform.rvs(-2,4, size=Nens),
+                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min))).T
 
 def local_periodic_inisamples(Nens, data):
     
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))#np.log10(2*np.max(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
+    sigma_min = np.log10(np.min(data[5]))
+    sigma_max = np.log10(np.max(data[5]))
     
-    return np.vstack((uniform.rvs(-2,4, size=Nens),
-                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens))).T
+    return np.vstack((uniform.rvs(-2,4, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens),
+                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min))).T
 
 def matern_inisamples(Nens, data):
     
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))#np.log10(2*np.max(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
+    sigma_min = np.log10(np.min(data[5]))
+    sigma_max = np.log10(np.max(data[5]))
     
-    return np.vstack((uniform.rvs(-2, 4, size=Nens),
-    				  uniform.rvs(-2, 3, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens))).T
+    return np.vstack((uniform.rvs(-2, 4, size=Nens), uniform.rvs(-2, 3, size=Nens),
+                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min))).T
 
 def rbf_samples(Nens, data):
     
@@ -107,9 +120,9 @@ def matern_samples(Nens, data):
 
 pulsar_name, kernel_name = sys.argv[1:]
 
-kernel_info = {'RBF': {'ndims': 2, 'kernel': gp.rbf, 'logprior': rbf_logprior, 'inisamples': rbf_inisamples, 'samples': rbf_samples}, 
-			   'Local_Periodic': {'ndims': 3, 'kernel': gp.local_periodic, 'logprior': local_periodic_logprior, 'inisamples': local_periodic_inisamples, 'samples': local_periodic_samples}, 
-			   'Matern': {'ndims': 3, 'kernel': gp.matern, 'logprior': matern_logprior, 'inisamples': matern_inisamples, 'samples': matern_samples}}
+kernel_info = {'RBF': {'ndims': 3, 'kernel': gp.rbf, 'logprior': rbf_logprior, 'inisamples': rbf_inisamples, 'samples': rbf_samples}, 
+			   'Local_Periodic': {'ndims': 4, 'kernel': gp.local_periodic, 'logprior': local_periodic_logprior, 'inisamples': local_periodic_inisamples, 'samples': local_periodic_samples}, 
+			   'Matern': {'ndims': 4, 'kernel': gp.matern, 'logprior': matern_logprior, 'inisamples': matern_inisamples, 'samples': matern_samples}}
 
 pulsar = np.loadtxt('./pulsar_data/%s.asc' %(pulsar_name), usecols=(0,1,2,7))
 
@@ -140,7 +153,7 @@ with MPIPool() as pool:
 		sys.exit(0)
 
 	Nens = 100   # number of ensemble points
-	Nburnin = 3000   # number of burn-in samples
+	Nburnin = 5000   # number of burn-in samples
 	Nsamples = 10000  # number of final posterior samples
 
 	ndims = kernel_info[kernel_name]['ndims']
