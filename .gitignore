@@ -11,3 +11,6 @@ HPC/
 osman@dark01.hpc.ku.dk
 Notebooks/
 Tests/
+pulsar_results/
+pulsar_data/
+run.sh
