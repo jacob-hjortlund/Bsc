@@ -124,7 +124,7 @@ kernel_info = {'RBF': {'ndims': 3, 'kernel': gp.rbf, 'logprior': rbf_logprior, '
 			   'Local_Periodic': {'ndims': 4, 'kernel': gp.local_periodic, 'logprior': local_periodic_logprior, 'inisamples': local_periodic_inisamples, 'samples': local_periodic_samples}, 
 			   'Matern': {'ndims': 4, 'kernel': gp.matern, 'logprior': matern_logprior, 'inisamples': matern_inisamples, 'samples': matern_samples}}
 
-pulsar = np.loadtxt('./pulsar_data/%s.asc' %(pulsar_name), usecols=(0,1,2,7))
+pulsar = np.genfromtxt('./pulsar_data/%s.asc' %(pulsar_name), usecols=(0,1,2,7))
 
 data = (pulsar[1::2,0],pulsar[::2,0],pulsar[::2,1],pulsar[1::2,1],pulsar[1::2,2],pulsar[::2,2])
 
