@@ -38,7 +38,7 @@ def local_periodic_logprior(theta, data):
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
     sigma_min = np.log10(np.min(data[5]))
-    sigma_max = np.log10(np.max(data[5]))
+    sigma_max = np.log10(np.std(data[2], ddof=1))
     
     return uniform.logpdf(s, -2, 4) + uniform.logpdf(l, p_min, p_max-p_min) + uniform.logpdf(p, p_min, p_max-p_min) + uniform.logpdf(sigma, sigma_min, sigma_max-sigma_min)
 
@@ -49,7 +49,7 @@ def matern_logprior(theta, data):
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
     sigma_min = np.log10(np.min(data[5]))
-    sigma_max = np.log10(np.max(data[5]))
+    sigma_max = np.log10(np.std(data[2], ddof=1))
     
     return uniform.logpdf(s, -2, 4) + uniform.logpdf(nu, -2, 3) + uniform.logpdf(l, p_min, p_max-p_min) + uniform.logpdf(sigma, sigma_min, sigma_max-sigma_min)
 
@@ -59,7 +59,7 @@ def rbf_inisamples(Nens, data):
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
     sigma_min = np.log10(np.min(data[5]))
-    sigma_max = np.log10(np.max(data[5]))
+    sigma_max = np.log10(np.std(data[2], ddof=1))
     
     return np.vstack((uniform.rvs(-2,4, size=Nens),
                       uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens))).T
@@ -70,7 +70,7 @@ def local_periodic_inisamples(Nens, data):
     p_min = np.log10(2*np.min(diff))#np.log10(2*np.max(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
     sigma_min = np.log10(np.min(data[5]))
-    sigma_max = np.log10(np.max(data[5]))
+    sigma_max = np.log10(np.std(data[2], ddof=1))
     
     return np.vstack((uniform.rvs(-2,4, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens),
                       uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens))).T
@@ -81,7 +81,7 @@ def matern_inisamples(Nens, data):
     p_min = np.log10(2*np.min(diff))#np.log10(2*np.max(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
     sigma_min = np.log10(np.min(data[5]))
-    sigma_max = np.log10(np.max(data[5]))
+    sigma_max = np.log10(np.std(data[2], ddof=1))
     
     return np.vstack((uniform.rvs(-2, 4, size=Nens), uniform.rvs(-2, 3, size=Nens),
                       uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens))).T
