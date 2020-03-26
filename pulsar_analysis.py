@@ -179,4 +179,4 @@ print("Number of independent samples is {}".format(len(samples)))
 if not os.path.isdir(path):
     os.mkdir(path)
 
-np.save(path + f'{kernel_name}.npy', samples)
+np.save(path + f'/{kernel_name}.npy', samples)
