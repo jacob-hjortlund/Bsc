@@ -159,8 +159,8 @@ with MPIPool() as pool:
 		sys.exit(0)
 
 	Nens = 100   # number of ensemble points
-	Nburnin = 500   # number of burn-in samples
-	Nsamples = 2000  # number of final posterior samples
+	Nburnin = 5000   # number of burn-in samples
+	Nsamples = 20000  # number of final posterior samples
 
 	ndims = kernel_info[kernel_name]['ndims']
 
