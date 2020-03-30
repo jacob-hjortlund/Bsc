@@ -170,12 +170,6 @@ with MPIPool() as pool:
 	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool)#, args=argslist)
 	sampler.run_mcmc(inisamples, Nsamples+Nburnin)
 
-print(sampler.chain.reshape((-1, ndims)))
-
-np.save(path + f'/{kernel_name}_check.npy', sampler.chain.reshape((-1, ndims)))
-
-print(np.shape(sampler.chain.reshape((-1, ndims))))
-
 acl = sampler.get_autocorr_time(c=1, quiet=True)
 print("The autocorrelation lengths are %s" %(acl))
 
