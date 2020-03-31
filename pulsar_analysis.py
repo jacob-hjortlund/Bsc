@@ -158,7 +158,7 @@ if not os.path.isfile(filename):
 
 backend = em.backends.HDFBackend(filename, name=kernel_name)
 if reset:
-	backend.reset(100, kernel_info[kernel_name]['ndims'])
+	backend.reset(100, 4)#kernel_info[kernel_name]['ndims'])
 
 with MPIPool() as pool:
 	if not pool.is_master():
