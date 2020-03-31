@@ -152,8 +152,13 @@ filename = path+'/'+nsamples+'.h5'
 if not os.path.isdir(path):
     os.mkdir(path)
 
+reset = False
+if not os.path.isfile(filename):
+	reset = True
+
 backend = em.backends.HDFBackend(filename, name=kernel_name)
-#backend.reset(100, kernel_info[kernel_name]['ndims'])
+if reset:
+	backend.reset(100, 4)#kernel_info[kernel_name]['ndims'])
 
 with MPIPool() as pool:
 	if not pool.is_master():
