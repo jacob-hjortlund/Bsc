@@ -6,6 +6,7 @@ import emcee as em
 from schwimmbad import MPIPool
 import sys
 import os
+from multiprocessing import Pool
 
 def loglikelihood(theta, data, kernel=gp.rbf):
     
@@ -158,7 +159,7 @@ if not os.path.isdir(path):
     os.mkdir(path)
 
 backend = em.backends.HDFBackend(filename, name=kernel_name)
-backend.reset(100, kernel_info[kernel_name]['ndims'])
+#backend.reset(100, kernel_info[kernel_name]['ndims'])
 
 with MPIPool() as pool:
 	if not pool.is_master():
@@ -173,6 +174,7 @@ with MPIPool() as pool:
 
 	np.random.seed()
 	inisamples = kernel_info[kernel_name]['inisamples'](Nens, data) 
+
 	# set up the sampler
 	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool, backend=backend)
 	sampler.run_mcmc(inisamples, Nsamples+Nburnin)
