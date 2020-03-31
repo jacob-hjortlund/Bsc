@@ -179,6 +179,5 @@ if not os.path.isdir(path):
 
 np.save(path + f'/{kernel_name}_samples.npy', samples)
 
-sample_log_probs = sampler.lnprobability[:, Nburnin::int(max(acl)), :].reshape((-1, ndims))
-np.save(path + f'/{kernel_name}_lnprob.npy', samples)
+np.save(path + f'/{kernel_name}_lnprob.npy', sampler.lnprobability)
 
