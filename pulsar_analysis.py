@@ -152,7 +152,7 @@ with MPIPool() as pool:
 		pool.wait()
 		sys.exit(0)
 
-	Nens = 100   # number of ensemble points
+	Nens = 500   # number of ensemble points
 	Nburnin = int(nburnin)   # number of burn-in samples
 	Nsamples = int(nsamples)  # number of final posterior samples
 
