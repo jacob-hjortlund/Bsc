@@ -151,14 +151,7 @@ def logposterior(theta): #data, logprior, kernel=rbf):
     
     return lp + loglikelihood(theta, data, kernel=kernel)
 
-path = f'./pulsar_results/{pulsar_name}'
-filename = path+'/'+nsamples+'.h5'
-
-if not os.path.isdir(path):
-    os.mkdir(path)
-
-backend = em.backends.HDFBackend(filename, name=kernel_name)
-backend.reset(100, kernel_info[kernel_name]['ndims'])
+path = f'./pulsar_results/{pulsar_name}/{nsamples}'
 
 with MPIPool() as pool:
 	if not pool.is_master():
@@ -174,7 +167,7 @@ with MPIPool() as pool:
 	np.random.seed()
 	inisamples = kernel_info[kernel_name]['inisamples'](Nens, data) 
 	# set up the sampler
-	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool, backend=backend)
+	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool)#, args=argslist)
 	sampler.run_mcmc(inisamples, Nsamples+Nburnin)
 
 acl = sampler.get_autocorr_time(c=1, quiet=True)
@@ -183,4 +176,7 @@ print("The autocorrelation lengths are %s" %(acl))
 samples = sampler.chain[:, Nburnin::int(max(acl)), :].reshape((-1, ndims))
 print("Number of independent samples is {}".format(len(samples)))
 
-#np.save(path + f'/{kernel_name}.npy', samples)
+if not os.path.isdir(path):
+    os.mkdir(path)
+
+np.save(path + f'/{kernel_name}.npy', samples)
