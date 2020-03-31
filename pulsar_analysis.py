@@ -26,7 +26,7 @@ def rbf_logprior(theta, data):
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(np.std(data[2], ddof=1)**2)))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(np.std(data[2], ddof=1))))
     
     return uniform.logpdf(s, sigma_min, sigma_max-sigma_min) + uniform.logpdf(l, p_min, p_max-p_min) + uniform.logpdf(sigma, sigma_min, sigma_max-sigma_min)
 
@@ -55,7 +55,7 @@ def rbf_inisamples(Nens, data):
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(np.std(data[2], ddof=1)**2)))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(np.std(data[2], ddof=1))))
     
     return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens),
                       uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens))).T
