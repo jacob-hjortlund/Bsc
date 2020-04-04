@@ -43,7 +43,9 @@ def matern(theta, x):
 
 def GP(kernel, theta, data, mu_prior=[], sigma=[]):
     
-    
+    efac = theta[-2]
+    equad = theta[-1]
+
     # Define test points (XT) and training data (X, y)
     XT, X, y = data
     n = len(X)
@@ -59,7 +61,7 @@ def GP(kernel, theta, data, mu_prior=[], sigma=[]):
 
     # Adding white noise as parameter
 
-    sigma_updated = np.sqrt(sigma**2 + theta[-1]**2)
+    sigma_updated = np.sqrt((efac*sigma)**2 + equad**2)
 
     # Sub-matrices of joint distribution, using cholesky decomp. for inversion
     K_XTX = K[n:,:n]
