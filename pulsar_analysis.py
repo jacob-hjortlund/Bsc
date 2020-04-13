@@ -10,13 +10,19 @@ import os
 def loglikelihood(theta, data, kernel=gp.rbf):
     
     """Data has structure (XT, X, y, yT, sigmaT, sigma)"""
-    # Define global variables
+
+    # Update errors
+    efac = 10**theta[-2]
+    equad = 10**theta[-1]
+
+    sigmaT = np.sqrt( ( efac*data[4] )**2 + equad**2 )
+    sigma = np.sqrt(  ( efac*data[5] )**2 + equad**2 )
 
     # normalisation
-    norm = -0.5*len(data[0])*np.log(2*np.pi) - np.sum(np.log(data[4]))
+    norm = -0.5*len(data[0])*np.log(2*np.pi) - np.sum(np.log(sigmaT))
 
     # chi-squared
-    chisq = np.sum(((data[3]-gp.GP(kernel, theta, data[:3], sigma=data[5])[0])/data[4])**2)
+    chisq = np.sum(((data[3]-gp.GP(kernel, theta, data[:3], sigma=sigma)[0])/sigmaT)**2)
 
     return norm - 0.5*chisq
 
