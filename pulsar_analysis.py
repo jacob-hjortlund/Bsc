@@ -32,12 +32,14 @@ def rbf_logprior(theta, data):
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(np.std(data[2], ddof=1))))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(3*np.std(data[2], ddof=1))))
+    efac_min, efac_max = (np.log10(np.min(data[5])), 1)
+    equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
 
     p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
     p_l = uniform.logpdf(l, p_min, p_max-p_min)
-    p_efac = uniform.logpdf(efac, sigma_min, sigma_max-sigma_min)
-    p_equad = uniform.logpdf(equad, sigma_min, sigma_max-sigma_min)
+    p_efac = uniform.logpdf(efac, efac_min, efac_max-efac_min)
+    p_equad = uniform.logpdf(equad, equad_min, equad_max-equad_min)
     
     return p_s + p_l + p_efac + p_equad
 
@@ -47,13 +49,15 @@ def local_periodic_logprior(theta, data):
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(np.std(data[2], ddof=1))))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(3*np.std(data[2], ddof=1))))
+    efac_min, efac_max = (np.log10(np.min(data[5])), 1)
+    equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
 
     p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
     p_l = uniform.logpdf(l, p_min, p_max-p_min)
     p_p = uniform.logpdf(p, p_min, p_max-p_min)
-    p_efac = uniform.logpdf(efac, sigma_min, sigma_max-sigma_min)
-    p_equad = uniform.logpdf(equad, sigma_min, sigma_max-sigma_min)
+    p_efac = uniform.logpdf(efac, efac_min, efac_max-efac_min)
+    p_equad = uniform.logpdf(equad, equad_min, equad_max-equad_min)
     
     return p_s + p_l + p_p + p_efac + p_equad 
 
@@ -63,13 +67,15 @@ def matern_logprior(theta, data):
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(np.std(data[2], ddof=1))))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(3*np.std(data[2], ddof=1))))
+    efac_min, efac_max = (np.log10(np.min(data[5])), 1)
+    equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
 
     p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
-    p_nu = uniform.logpdf(nu, -2, 3)
+    p_nu = uniform.logpdf(nu, -2, np.log10(800)+2)
     p_l = uniform.logpdf(l, p_min, p_max-p_min)
-    p_efac = uniform.logpdf(efac, sigma_min, sigma_max-sigma_min)
-    p_equad = uniform.logpdf(equad, sigma_min, sigma_max-sigma_min)
+    p_efac = uniform.logpdf(efac, efac_min, efac_max-efac_min)
+    p_equad = uniform.logpdf(equad, equad_min, equad_max-equad_min)
     
     return p_s + p_nu + p_l + p_efac + p_equad 
 
@@ -78,32 +84,38 @@ def rbf_inisamples(Nens, data):
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(np.std(data[2], ddof=1))))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(3*np.std(data[2], ddof=1))))
+    efac_min, efac_max = (np.log10(np.min(data[5])), 1)
+    equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
     
     return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens),
-                      uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens))).T
+                      uniform.rvs(efac_min, efac_max-efac_min, size=Nens), uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
 def local_periodic_inisamples(Nens, data):
     
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(np.std(data[2], ddof=1)**2)))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(3*np.std(data[2], ddof=1))))
+    efac_min, efac_max = (np.log10(np.min(data[5])), 1)
+    equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
     
     return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens),
-                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens),
-                      uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens))).T
+                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
+                      uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
 def matern_inisamples(Nens, data):
     
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(np.std(data[2], ddof=1)**2)))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(3*np.std(data[2], ddof=1))))
+    efac_min, efac_max = (np.log10(np.min(data[5])), 1)
+    equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
     
-    return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(-2, 3, size=Nens),
-                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens),
-                      uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens))).T
+    return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(-2, np.log10(800)+2, size=Nens),
+                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
+                      uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
 def rbf_samples(Nens, data):
     
