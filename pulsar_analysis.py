@@ -161,7 +161,7 @@ for root, dirs, files in os.walk('./pulsar_data'):
         if pulsar_name in file:
             data_name = file
 
-pulsar = np.genfromtxt('./pulsar_data/%s' %(data_name), usecols=(0,1,2,7))
+pulsar = np.genfromtxt('./pulsar_data/%s' %(data_name), usecols=(0,5,6))
 
 data = (pulsar[1::2,0],pulsar[::2,0],pulsar[::2,1],pulsar[1::2,1],pulsar[1::2,2],pulsar[::2,2])
 
