@@ -72,7 +72,7 @@ def matern_logprior(theta, data):
     equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
 
     p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
-    p_nu = uniform.logpdf(nu, -2, np.log10(800)+2)
+    p_nu = uniform.logpdf(nu, -2, 5)
     p_l = uniform.logpdf(l, p_min, p_max-p_min)
     p_efac = uniform.logpdf(efac, efac_min, efac_max-efac_min)
     p_equad = uniform.logpdf(equad, equad_min, equad_max-equad_min)
@@ -113,7 +113,7 @@ def matern_inisamples(Nens, data):
     efac_min, efac_max = (np.log10(np.min(data[5])), 1)
     equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
     
-    return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(-2, np.log10(800)+2, size=Nens),
+    return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(-2, 5, size=Nens),
                       uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
                       uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
