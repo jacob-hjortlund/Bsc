@@ -62,9 +62,7 @@ def GP(kernel, theta, data, mu_prior=[], sigma=[]):
     try:
     	ch_K_XX = cholesky(K_XX, lower=True)
     except:
-        np.save(path + f'{kernel_name}_failed_matrix.npy', K_XX)
-        print(K_XX)
-        print(np.count_nonzero(K_XX<=0))
+        ch_K_XX = cholesky(K_XX+ 1E-10 * np.eye(*K_XX.shape), lower=True)
 
     K_XX_inv = inv(ch_K_XX.T) @ inv(ch_K_XX)#inv(K[:n,:n]+np.diag(sigma**2))
     K_XXT = K[:n,n:]
