@@ -61,10 +61,10 @@ def GP(kernel, theta, data, mu_prior=[], sigma=[]):
     K_XX = K[:n,:n]+np.diag(sigma**2)
     try:
     	ch_K_XX = cholesky(K_XX, lower=True)
+    	K_XX_inv = inv(ch_K_XX.T) @ inv(ch_K_XX)
     except:
-        ch_K_XX = cholesky(K_XX+ 1E-10 * np.eye(*K_XX.shape), lower=True)
+        K_XX_inv = inv(K_XX)
 
-    K_XX_inv = inv(ch_K_XX.T) @ inv(ch_K_XX)#inv(K[:n,:n]+np.diag(sigma**2))
     K_XXT = K[:n,n:]
     K_XTXT = K[n:,n:]
     
