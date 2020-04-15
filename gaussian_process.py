@@ -3,23 +3,6 @@ import log_bessel as lb
 from scipy.linalg import cholesky, inv
 from scipy.special import loggamma as lg
 
-def round_sig(x, sig=1):
-    """
-    Rounds a float to the given number of significant
-    figures.
-
-    Parameters
-    -------------
-    x    : Float
-           Float to be rounded
-    sig  : Integer
-           Number of sig. figures
-    """
-
-    i = sig-int(np.floor(np.log10(np.abs(x))))-1
-    return np.around(x, i), i
-
-
 def rbf(theta,x):
     
     return theta[0]**2 * np.exp(-0.5 * theta[1]**-2 * np.subtract.outer(x,x)**2)
