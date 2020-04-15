@@ -122,8 +122,8 @@ with MPIPool() as pool:
     loglikelihood_vals = np.array(pool.map(lnL_sample, range(n)))
 
 lnL_max = np.max(loglikelihood_vals)
-Z_est = 1/n * np.sum( np.exp( loglikelihood_vals-lnL_max ) )
-Z_sq_est = 1/n * np.sum( np.exp( 2 * ( loglikelihood_vals-lnL_max ) ) )
+Z = 1/n * np.sum( np.exp( loglikelihood_vals-lnL_max ) )
+Z_sq = 1/n * np.sum( np.exp( 2 * ( loglikelihood_vals-lnL_max ) ) )
 
 Z_err, i = round_sig(np.sqrt(Z_sq-Z**2)/(np.sqrt(n)*Z))
 Z_val = np.around(np.log(Z)+lnL_max, i)
