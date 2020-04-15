@@ -87,7 +87,6 @@ pulsar = np.genfromtxt('./pulsar_data/%s' %(data_name), usecols=(0,5,6))
 
 data = (pulsar[1::2,0],pulsar[::2,0],pulsar[::2,1],pulsar[1::2,1],pulsar[1::2,2],pulsar[::2,2])
 
-logprior = kernel_info[kernel_name]['logprior']
 kernel = kernel_info[kernel_name]['kernel']
 
 n = int(nsamples)
