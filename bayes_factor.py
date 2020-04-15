@@ -103,7 +103,7 @@ with MPIPool() as pool:
         pool.wait()
         sys.exit(0)
         
-    loglikelihood_vals = np.array(pool.map(Z_est, range(n)))
+    loglikelihood_vals = np.array(pool.map(lnL_sample, range(n)))
 
 lnL_max = np.max(loglikelihood_vals)
 Z_est = 1/n * np.sum( np.exp( loglikelihood_vals-lnL_max ) )
