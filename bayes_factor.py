@@ -133,4 +133,4 @@ path = f'./pulsar_results/{pulsar_name}/Bayes_factor/{nsamples}'
 if not os.path.isdir(path):
     os.makedirs(path)
 
-np.save(path + f'/{kernel_name}.npy', np.array([Z_val, z_err]))
+np.save(path + f'/{kernel_name}.npy', np.array([Z_val, Z_err]))
