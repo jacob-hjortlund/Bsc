@@ -7,6 +7,22 @@ from schwimmbad import MPIPool
 import sys
 import os
 
+def round_sig(x, sig=1):
+    """
+    Rounds a float to the given number of significant
+    figures.
+    
+    Parameters
+    -------------
+    x    : Float
+           Float to be rounded
+    sig  : Integer
+           Number of sig. figures
+    """
+    
+    i = sig-int(np.floor(np.log10(abs(x))))-1
+    return np.around(x, i), i
+
 def loglikelihood(theta, data, kernel=gp.rbf):
     
     """Data has structure (XT, X, y, yT, sigmaT, sigma)"""
