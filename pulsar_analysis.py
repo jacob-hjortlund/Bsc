@@ -180,7 +180,7 @@ samples = sampler.chain[:, Nburnin::int(max(acl)), :].reshape((-1, ndims))
 print("Number of independent samples is {}".format(len(samples)))
 
 if not os.path.isdir(path):
-    os.mkdir(path)
+    os.makedirs(path)
 
 np.save(path + f'/{kernel_name}_samples.npy', samples)
 
