@@ -117,38 +117,6 @@ def matern_inisamples(Nens, data):
                       uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
                       uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
-def rbf_samples(Nens, data):
-    
-    diff = np.diff(data[1])
-    p_min = np.log10(2*np.min(diff))#np.log10(2*np.max(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])
-    
-    r = uniform.rvs(size=(Nens, 2))
-    
-    return np.vstack((uniform.ppf(r[:,0], -2, 4), uniform.ppf(r[:,1], p_min, p_max-p_min))).T
-
-def local_periodic_samples(Nens, data):
-    
-    diff = np.diff(data[1])
-    p_min = np.log10(2*np.min(diff))#np.log10(2*np.max(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])
-    
-    r = uniform.rvs(size=(Nens, 3))
-    
-    return np.vstack((uniform.ppf(r[:,0], -2, 4), uniform.ppf(r[:,1], p_min, p_max-p_min), 
-                      uniform.ppf(r[:,2], p_min, p_max-p_min))).T
-
-def matern_samples(Nens, data):
-    
-    diff = np.diff(data[1])
-    p_min = np.log10(2*np.min(diff))#np.log10(2*np.max(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])
-    
-    r = uniform.rvs(size=(Nens, 3))
-    
-    return np.vstack((uniform.ppf(r[:,0], -2, 4), uniform.ppf(r[:,1], -2, 4), 
-                      uniform.ppf(r[:,2], p_min, p_max-p_min))).T
-
 pulsar_name, kernel_name, nburnin, nsamples = sys.argv[1:]
 
 kernel_info = {'RBF': {'ndims': 4, 'kernel': gp.rbf, 'logprior': rbf_logprior, 'inisamples': rbf_inisamples, 'samples': rbf_samples}, 
