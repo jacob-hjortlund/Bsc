@@ -126,7 +126,7 @@ Z = 1/n * np.sum( np.exp( loglikelihood_vals-lnL_max ) )
 Z_sq = 1/n * np.sum( np.exp( 2 * ( loglikelihood_vals-lnL_max ) ) )
 
 Z_err, i = round_sig(1/np.log(10) *(np.sqrt(Z_sq-Z**2)/(np.sqrt(n)*Z)))
-Z_val = np.around(1/np.log(10) * (np.log(Z)+lnL_max, i))
+Z_val = np.around(1/np.log(10) * (np.log(Z)+lnL_max), i)
 
 path = f'./pulsar_results/{pulsar_name}/Bayes_factor/{nsamples}'
 
