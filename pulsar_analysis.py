@@ -32,7 +32,7 @@ def rbf_logprior(theta, data):
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(3*np.std(data[2], ddof=1))))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
     efac_min, efac_max = (np.log10(np.min(data[5])), 1)
     equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
 
@@ -49,7 +49,7 @@ def local_periodic_logprior(theta, data):
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(3*np.std(data[2], ddof=1))))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
     efac_min, efac_max = (np.log10(np.min(data[5])), 1)
     equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
 
@@ -67,7 +67,7 @@ def matern_logprior(theta, data):
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(3*np.std(data[2], ddof=1))))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
     efac_min, efac_max = (np.log10(np.min(data[5])), 1)
     equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
 
@@ -84,7 +84,7 @@ def rbf_inisamples(Nens, data):
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(3*np.std(data[2], ddof=1))))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
     efac_min, efac_max = (np.log10(np.min(data[5])), 1)
     equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
     
@@ -96,7 +96,7 @@ def local_periodic_inisamples(Nens, data):
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(3*np.std(data[2], ddof=1))))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
     efac_min, efac_max = (np.log10(np.min(data[5])), 1)
     equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
     
@@ -109,7 +109,7 @@ def matern_inisamples(Nens, data):
     diff = np.diff(data[1])
     p_min = np.log10(2*np.min(diff))
     p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), np.log10(3*np.std(data[2], ddof=1))))
+    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
     efac_min, efac_max = (np.log10(np.min(data[5])), 1)
     equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
     
