@@ -7,6 +7,10 @@ from schwimmbad import MPIPool
 import sys
 import os
 
+def pulsar_timing_model(t,a,b,c,d,f):
+
+	return a**2 * t + b*t + c + d*np.sin(f*t)
+
 def loglikelihood(theta, data, kernel=gp.rbf):
     
     """Data has structure (XT, X, y, yT, sigmaT, sigma)"""
@@ -22,7 +26,9 @@ def loglikelihood(theta, data, kernel=gp.rbf):
     norm = -0.5*len(data[0])*np.log(2*np.pi) - np.sum(np.log(sigmaT))
 
     # chi-squared
-    chisq = np.sum(((data[3]-gp.GP(kernel, theta, data[:3], sigma=sigma)[0])/sigmaT)**2)
+    gp_mean = gp.GP(kernel, theta[5:], data[:3], sigma=sigma)[0]
+    timing_model = pulsar_timing_model(data[0], *theta[:5])
+    chisq = np.sum(((data[3]-gp_mean-timing_model)/sigmaT)**2)
 
     return norm - 0.5*chisq
 
