@@ -2,6 +2,9 @@ import numpy as np
 import scipy as sp
 import gaussian_process as gp
 from scipy.stats import uniform
+from scipy.special import gamma
+from scipy.misc import factorial
+from scipy.linalg import cholesky, inv
 import emcee as em
 from schwimmbad import MPIPool
 import sys
@@ -11,7 +14,32 @@ def pulsar_timing_model(t,a,b,c,d,f):
 
 	return a**2 * t + b*t + c + d*np.sin(f*t)
 
-def loglikelihood(theta, data, kernel=gp.rbf):
+def power_law_sum(tau, f_L, y, n):
+
+	denomenator = (-1)**n * (f_L*tau)**(2*n)
+	numerator = factorial(2*n) * (2*n+1-y)  
+
+	return  denomenator/numerator
+
+def power_law_covariance(t, A, y):
+
+	n = 1000
+	f_L = 5 * 1/(t[-1]-t[0])
+	tau = 2*np.pi*np.subtract.outer(t,t)
+	scaling = A**2 / (f_L)**(y-1)
+	first_term = gamma(1-y)*np.sin(np.pi*y/2)*(f_L*tau)**(y-1)
+
+def rezip(x1, x2):
+
+	n = len(x1)+len(x2)
+	x = np.empty(n)
+	x[::2] = x1
+	x[1::2] = x2
+
+	return x
+
+
+def loglikelihood(theta, data, power_law=False, kernel=gp.rbf):
     
     """Data has structure (XT, X, y, yT, sigmaT, sigma)"""
 
@@ -22,15 +50,42 @@ def loglikelihood(theta, data, kernel=gp.rbf):
     sigmaT = np.sqrt( ( efac*data[4] )**2 + equad**2 )
     sigma = np.sqrt(  ( efac*data[5] )**2 + equad**2 )
 
-    # normalisation
-    norm = -0.5*len(data[0])*np.log(2*np.pi) - np.sum(np.log(sigmaT))
+    if not power_law:
 
-    # chi-squared
-    gp_mean = gp.GP(kernel, theta[5:], data[:3], sigma=sigma)[0]
-    timing_model = pulsar_timing_model(data[0], *theta[:5])
-    chisq = np.sum(((data[3]-gp_mean-timing_model)/sigmaT)**2)
+    	# Calculate timing model
+    	timing_model = pulsar_timing_model(data[0], *theta[:5])
 
-    return norm - 0.5*chisq
+    	# normalisation
+    	norm = -0.5*len(data[0])*np.log(2*np.pi) - np.sum(np.log(sigmaT))
+
+    	# chi-squared
+    	gp_mean = gp.GP(kernel, theta[5:], data[:3], sigma=sigma)[0]
+    	chisq = np.sum(((data[3]-gp_mean-timing_model)/sigmaT)**2)
+
+    	return norm - 0.5*chisq
+    
+    else:
+
+    	x = rezip(data[1], data[0])
+    	y = rezip(data[2], data[3])
+    	sigma = rezip(sigma, sigmaT)
+
+    	cov = power_law_covariance(x, *theta[5:]) + np.diag(sigma**2)
+    	ch_lower = cholesky(cov, lower=True)
+    	det = np.prod(np.diag(ch_lower))**2
+    	cov_inv = inv(ch_lower.T) @ inv(ch_lower)
+
+    	# calculate timing model
+    	timing_model = pulsar_timing_model(x, *theta[:5])
+
+    	# normalisation
+    	norm = -0.5*len(x)*np.log(2*np.pi) - 0.5*det
+
+    	# chi-squared
+    	chisq = (y-timing_model) @ cov_inv @ (y-timing_model)
+
+    	return norm - 0.5*chisq
+
 
 def rbf_logprior(theta, data):
     
