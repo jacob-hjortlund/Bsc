@@ -183,7 +183,7 @@ with MPIPool() as pool:
 	np.random.seed()
 	inisamples = kernel_info[kernel_name]['inisamples'](Nens) 
 
-	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool)
+	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool, moves=[(emcee.moves.DEMove(), 0.8), (emcee.moves.DESnookerMove(), 0.2),])
 	sampler.run_mcmc(inisamples, Nsamples+Nburnin)
 
 
