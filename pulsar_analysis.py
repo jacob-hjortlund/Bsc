@@ -78,11 +78,11 @@ def loglikelihood(theta, data, kernel=gp.rbf):
 	except:
 		return -np.inf
 
-	det_GCG = np.prod(np.diag(GCG_L))
+	ln_det_GCG = np.sum(np.log(np.diag(GCG_L)))
 	print(det_GCG)
 
 	# Calulate likelihood
-	normalisation = -0.5 * len(G[0]) * np.log(2*np.pi) - 0.5 * np.log(det_GCG)
+	normalisation = -0.5 * len(G[0]) * np.log(2*np.pi) - 0.5 * ln_det_GCG
 	GCG_D = solve_triangular(GCG_L, data[1], lower=True, check_finite=False)
 	ln_L =  normalisation - 0.5 * GCG_D @ GCG_D
 
