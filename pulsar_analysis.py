@@ -79,6 +79,7 @@ def loglikelihood(theta, data, kernel=gp.rbf):
 		return -np.inf
 
 	det_GCG = np.prod(np.diag(GCG_L))
+	print(det_GCG)
 
 	# Calulate likelihood
 	normalisation = -0.5 * len(G[0]) * np.log(2*np.pi) - 0.5 * np.log(det_GCG)
