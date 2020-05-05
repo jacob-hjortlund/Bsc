@@ -34,7 +34,7 @@ sigma = pulsar[:,2]
 def timing_model(x):
 
 	p = 2*np.pi / 365.25
-	
+
 	return np.array([np.ones(len(x)), x, x**2, np.sin(p*x), np.cos(p*x)]).T
 
 # Set up data with expected structure
@@ -81,8 +81,9 @@ def loglikelihood(theta, data, kernel=gp.rbf):
 	det_GCG = np.prod(np.diag(GCG_L))
 
 	# Calulate likelihood
-	normalisation = -0.5*len(G[0])*np.log(2*np.pi) - 0.5*np.log(det_GCG)
-	ln_L =  normalisation - 0.5*np.norm(solve_triangular(GCG_L, data[1], lower=True, check_finite=False))
+	normalisation = -0.5 * len(G[0]) * np.log(2*np.pi) - 0.5 * np.log(det_GCG)
+	GCG_D = solve_triangular(GCG_L, data[1], lower=True, check_finite=False)
+	ln_L =  normalisation - 0.5 * GCG_D @ GCG_D
 
 	return ln_L
 
