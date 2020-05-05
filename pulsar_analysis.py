@@ -4,40 +4,85 @@ import gaussian_process as gp
 from scipy.stats import uniform
 from scipy.special import gamma
 from scipy.misc import factorial
-from scipy.linalg import cholesky, inv
+from scipy.linalg import cholesky, inv, solve_triangular, svd
 import emcee as em
 from schwimmbad import MPIPool
 import sys
 import os
 
-def pulsar_timing_model(t,a,b,c,d,f):
+###############################
+#            SETUP            #
+###############################
 
-	return a**2 * t + b*t + c + d*np.sin(f*t)
+# Load data
 
-def power_law_sum(tau, f_L, y, n):
+pulsar_name, kernel_name, nburnin, nsamples = sys.argv[1:]
 
-	denomenator = (-1)**n * (f_L*tau)**(2*n)
-	numerator = factorial(2*n) * (2*n+1-y)  
+data_name = 'blank'
+for root, dirs, files in os.walk('./pulsar_data'):
+    for file in files:
+        if pulsar_name in file:
+            data_name = file
 
-	return  denomenator/numerator
+pulsar = np.genfromtxt('./pulsar_data/%s' %(data_name), usecols=(0,5,6))
+x = pulsar[:,0]
+y = pulsar[:,1]
+sigma = pulsar[:,2]
 
-def power_law_covariance(t, A, y):
+#data = (pulsar[1::2,0],pulsar[::2,0],pulsar[::2,1],pulsar[1::2,1],pulsar[1::2,2],pulsar[::2,2])
 
-	n = 1000
-	f_L = 5 * 1/(t[-1]-t[0])
-	tau = 2*np.pi*np.subtract.outer(t,t)
-	scaling = A**2 / (f_L)**(y-1)
-	first_term = gamma(1-y)*np.sin(np.pi*y/2)*(f_L*tau)**(y-1)
+def timing_model(x):
 
-def rezip(x1, x2):
+	return np.array([np.ones(len(x)), x, x**2, np.sin(x), np.cos(x)]).T
 
-	n = len(x1)+len(x2)
-	x = np.empty(n)
-	x[::2] = x1
-	x[1::2] = x2
+# Set up data with expected structure
 
-	return x
+M = timing_model(pulsar[:,0])
+F, _, _ = svd(M)
+G = F[:, len(M[0]):]
+data = [pulsar[:,0], G.T @ y, G, sigma]
 
+# Pre-calc prior bounds
+
+diff = np.diff(x)
+p_min = np.log10(2*np.min(diff))
+p_max = np.log10(x[-1]-x[0])
+sigma_min, sigma_max = sorted((np.log10(np.min(sigma)), 1))#np.log10(3*np.std(data[2], ddof=1))))
+efac_min, efac_max = (np.log10(np.min(sigma)), 1)
+equad_min, equad_max = (-8, np.log10(3*np.std(y, ddof=1)))
+nu_min, nu_max = (-2, 3)
+
+################################
+#       DEFINE FUNCTIONS       #
+################################
+
+def loglikelihood_v2(theta, data, kernel=gp.rbf):
+
+	""" Data has structure (x, G.T @ y, G, sigma) """
+
+	# Update errors
+	efac = 10**theta[-2]
+	equad = 10**theta[-1]
+
+	variance = (efac*data[3])**2 + equad**2
+
+	# Calculate and update covariance matrix
+	C = kernel(theta[:-2], data[0]) + np.diag(variance)
+	GCG = data[2].T @ C @ data[2]
+
+	# Decomp and determinant
+	try:
+		GCG_U = cholesky(GCG, lower=True, overwrite_a=True, check_finite=False)
+	except:
+		return -np.inf
+
+	det_GCG = np.prod(np.diag(GCG_U))
+
+	# Calulate likelihood
+	normalisation = -0.5*len(G[0])*np.log(2*np.pi) - 0.5*np.log(det_GCG)
+	ln_L =  normalisation - 0.5*np.norm(solve_triangular(GCG_U, data[1], lower=True, check_finite=False))
+
+	return ln_L
 
 def loglikelihood(theta, data, power_law=False, kernel=gp.rbf):
     
@@ -90,12 +135,6 @@ def loglikelihood(theta, data, power_law=False, kernel=gp.rbf):
 def rbf_logprior(theta, data):
     
     s, l, efac, equad = theta
-    diff = np.diff(data[1])
-    p_min = np.log10(2*np.min(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
-    efac_min, efac_max = (np.log10(np.min(data[5])), 1)
-    equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
 
     p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
     p_l = uniform.logpdf(l, p_min, p_max-p_min)
@@ -107,12 +146,6 @@ def rbf_logprior(theta, data):
 def local_periodic_logprior(theta, data):
     
     s, l, p, efac, equad = theta
-    diff = np.diff(data[1])
-    p_min = np.log10(2*np.min(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
-    efac_min, efac_max = (np.log10(np.min(data[5])), 1)
-    equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
 
     p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
     p_l = uniform.logpdf(l, p_min, p_max-p_min)
@@ -125,15 +158,9 @@ def local_periodic_logprior(theta, data):
 def matern_logprior(theta, data):
     
     s, nu, l, efac, equad = theta
-    diff = np.diff(data[1])
-    p_min = np.log10(2*np.min(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
-    efac_min, efac_max = (np.log10(np.min(data[5])), 1)
-    equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
 
     p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
-    p_nu = uniform.logpdf(nu, -2, 5)
+    p_nu = uniform.logpdf(nu, nu_min, nu_max-nu_min)
     p_l = uniform.logpdf(l, p_min, p_max-p_min)
     p_efac = uniform.logpdf(efac, efac_min, efac_max-efac_min)
     p_equad = uniform.logpdf(equad, equad_min, equad_max-equad_min)
@@ -142,24 +169,10 @@ def matern_logprior(theta, data):
 
 def rbf_inisamples(Nens, data):
     
-    diff = np.diff(data[1])
-    p_min = np.log10(2*np.min(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
-    efac_min, efac_max = (np.log10(np.min(data[5])), 1)
-    equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
-    
     return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens),
                       uniform.rvs(efac_min, efac_max-efac_min, size=Nens), uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
 def local_periodic_inisamples(Nens, data):
-    
-    diff = np.diff(data[1])
-    p_min = np.log10(2*np.min(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
-    efac_min, efac_max = (np.log10(np.min(data[5])), 1)
-    equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
     
     return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens),
                       uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
@@ -167,32 +180,13 @@ def local_periodic_inisamples(Nens, data):
 
 def matern_inisamples(Nens, data):
     
-    diff = np.diff(data[1])
-    p_min = np.log10(2*np.min(diff))
-    p_max = np.log10(data[1][-1]-data[1][0])
-    sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
-    efac_min, efac_max = (np.log10(np.min(data[5])), 1)
-    equad_min, equad_max = (-8, np.log10(3*np.std(data[2], ddof=1)))
-    
     return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(-2, 5, size=Nens),
                       uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
                       uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
-pulsar_name, kernel_name, nburnin, nsamples = sys.argv[1:]
-
 kernel_info = {'RBF': {'ndims': 4, 'kernel': gp.rbf, 'logprior': rbf_logprior, 'inisamples': rbf_inisamples}, 
 			   'Local_Periodic': {'ndims': 5, 'kernel': gp.local_periodic, 'logprior': local_periodic_logprior, 'inisamples': local_periodic_inisamples}, 
 			   'Matern': {'ndims': 5, 'kernel': gp.matern, 'logprior': matern_logprior, 'inisamples': matern_inisamples}}
-
-data_name = 'blank'
-for root, dirs, files in os.walk('./pulsar_data'):
-    for file in files:
-        if pulsar_name in file:
-            data_name = file
-
-pulsar = np.genfromtxt('./pulsar_data/%s' %(data_name), usecols=(0,5,6))
-
-data = (pulsar[1::2,0],pulsar[::2,0],pulsar[::2,1],pulsar[1::2,1],pulsar[1::2,2],pulsar[::2,2])
 
 logprior = kernel_info[kernel_name]['logprior']
 kernel = kernel_info[kernel_name]['kernel']
