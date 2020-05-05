@@ -56,7 +56,7 @@ nu_min, nu_max = (-2, 3)
 #       DEFINE FUNCTIONS       #
 ################################
 
-def loglikelihood_v2(theta, data, kernel=gp.rbf):
+def loglikelihood(theta, data, kernel=gp.rbf):
 
 	""" Data has structure (x, G.T @ y, G, sigma) """
 
@@ -67,72 +67,24 @@ def loglikelihood_v2(theta, data, kernel=gp.rbf):
 	variance = (efac*data[3])**2 + equad**2
 
 	# Calculate and update covariance matrix
-	C = kernel(theta[:-2], data[0]) + np.diag(variance)
+	C = kernel(10**theta[:-2], data[0]) + np.diag(variance)
 	GCG = data[2].T @ C @ data[2]
 
 	# Decomp and determinant
 	try:
-		GCG_U = cholesky(GCG, lower=True, overwrite_a=True, check_finite=False)
+		GCG_L = cholesky(GCG, lower=True, overwrite_a=True, check_finite=False)
 	except:
 		return -np.inf
 
-	det_GCG = np.prod(np.diag(GCG_U))
+	det_GCG = np.prod(np.diag(GCG_L))
 
 	# Calulate likelihood
 	normalisation = -0.5*len(G[0])*np.log(2*np.pi) - 0.5*np.log(det_GCG)
-	ln_L =  normalisation - 0.5*np.norm(solve_triangular(GCG_U, data[1], lower=True, check_finite=False))
+	ln_L =  normalisation - 0.5*np.norm(solve_triangular(GCG_L, data[1], lower=True, check_finite=False))
 
 	return ln_L
 
-def loglikelihood(theta, data, power_law=False, kernel=gp.rbf):
-    
-    """Data has structure (XT, X, y, yT, sigmaT, sigma)"""
-
-    # Update errors
-    efac = 10**theta[-2]
-    equad = 10**theta[-1]
-
-    sigmaT = np.sqrt( ( efac*data[4] )**2 + equad**2 )
-    sigma = np.sqrt(  ( efac*data[5] )**2 + equad**2 )
-
-    if not power_law:
-
-    	# Calculate timing model
-    	timing_model = pulsar_timing_model(data[0], *theta[:5])
-
-    	# normalisation
-    	norm = -0.5*len(data[0])*np.log(2*np.pi) - np.sum(np.log(sigmaT))
-
-    	# chi-squared
-    	gp_mean = gp.GP(kernel, theta[5:], data[:3], sigma=sigma)[0]
-    	chisq = np.sum(((data[3]-gp_mean-timing_model)/sigmaT)**2)
-
-    	return norm - 0.5*chisq
-    
-    else:
-
-    	x = rezip(data[1], data[0])
-    	y = rezip(data[2], data[3])
-    	sigma = rezip(sigma, sigmaT)
-
-    	cov = power_law_covariance(x, *theta[5:]) + np.diag(sigma**2)
-    	ch_lower = cholesky(cov, lower=True)
-    	det = np.prod(np.diag(ch_lower))**2
-    	cov_inv = inv(ch_lower.T) @ inv(ch_lower)
-
-    	# calculate timing model
-    	timing_model = pulsar_timing_model(x, *theta[:5])
-
-    	# normalisation
-    	norm = -0.5*len(x)*np.log(2*np.pi) - 0.5*det
-
-    	# chi-squared
-    	chisq = (y-timing_model) @ cov_inv @ (y-timing_model)
-
-    	return norm - 0.5*chisq
-
-
-def rbf_logprior(theta, data):
+def rbf_logprior(theta):
     
     s, l, efac, equad = theta
 
@@ -143,7 +95,7 @@ def rbf_logprior(theta, data):
     
     return p_s + p_l + p_efac + p_equad
 
-def local_periodic_logprior(theta, data):
+def local_periodic_logprior(theta):
     
     s, l, p, efac, equad = theta
 
@@ -155,7 +107,7 @@ def local_periodic_logprior(theta, data):
     
     return p_s + p_l + p_p + p_efac + p_equad 
 
-def matern_logprior(theta, data):
+def matern_logprior(theta):
     
     s, nu, l, efac, equad = theta
 
@@ -191,13 +143,20 @@ kernel_info = {'RBF': {'ndims': 4, 'kernel': gp.rbf, 'logprior': rbf_logprior, '
 logprior = kernel_info[kernel_name]['logprior']
 kernel = kernel_info[kernel_name]['kernel']
 
-def logposterior(theta): #data, logprior, kernel=rbf):
+##################################
+#       MCMC SETUP AND RUN       #
+##################################
+
+def logposterior(theta):
     
+    # Import global values
+    # to minimize MPI overhead
+
     global data
     global logprior
     global kernel
 
-    lp = logprior(theta, data)
+    lp = logprior(theta)
     
     if not np.isfinite(lp):
         
@@ -212,7 +171,7 @@ with MPIPool() as pool:
 		pool.wait()
 		sys.exit(0)
 
-	Nens = 500   # number of ensemble points
+	Nens = 50   # number of ensemble points
 	Nburnin = int(nburnin)   # number of burn-in samples
 	Nsamples = int(nsamples)  # number of final posterior samples
 
@@ -220,11 +179,14 @@ with MPIPool() as pool:
 
 	np.random.seed()
 	inisamples = kernel_info[kernel_name]['inisamples'](Nens, data) 
-	# set up the sampler
-	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool)#, args=argslist)
+
+	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool)
 	sampler.run_mcmc(inisamples, Nsamples+Nburnin)
 
 
+#############################################
+#       SAVE SAMPLES AND DISPLAY INFO       #
+#############################################
 
 print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
 
