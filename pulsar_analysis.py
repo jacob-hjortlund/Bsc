@@ -33,7 +33,9 @@ sigma = pulsar[:,2]
 
 def timing_model(x):
 
-	return np.array([np.ones(len(x)), x, x**2, np.sin(x), np.cos(x)]).T
+	p = 2*np.pi / 365.25
+	
+	return np.array([np.ones(len(x)), x, x**2, np.sin(p*x), np.cos(p*x)]).T
 
 # Set up data with expected structure
 
