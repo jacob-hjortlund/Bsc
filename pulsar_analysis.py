@@ -123,18 +123,18 @@ def matern_logprior(theta):
     
     return p_s + p_nu + p_l + p_efac + p_equad 
 
-def rbf_inisamples(Nens, data):
+def rbf_inisamples(Nens):
     
     return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens),
                       uniform.rvs(efac_min, efac_max-efac_min, size=Nens), uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
-def local_periodic_inisamples(Nens, data):
+def local_periodic_inisamples(Nens):
     
     return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens),
                       uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
                       uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
-def matern_inisamples(Nens, data):
+def matern_inisamples(Nens):
     
     return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(-2, 5, size=Nens),
                       uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
@@ -182,7 +182,7 @@ with MPIPool() as pool:
 	ndims = kernel_info[kernel_name]['ndims']
 
 	np.random.seed()
-	inisamples = kernel_info[kernel_name]['inisamples'](Nens, data) 
+	inisamples = kernel_info[kernel_name]['inisamples'](Nens) 
 
 	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool)
 	sampler.run_mcmc(inisamples, Nsamples+Nburnin)
