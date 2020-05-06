@@ -210,10 +210,17 @@ print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_frac
 acl = sampler.get_autocorr_time(c=1, quiet=True)
 print("The autocorrelation lengths are %s" %(acl))
 
+# Samples
 max_acl = int(max(acl))
 samples = sampler.chain[:, Nburnin::max_acl, :].reshape((-1, ndims))
 ln_samples = sampler.lnprobability[:, 5000::max_acl].reshape(-1)
 print("Number of independent samples is {}".format(len(samples)))
+
+# Meta data
+blobs = sampler.get_blobs()
+ln_det_S = blobs['log_det_S']
+S_inv = blobs['S_inv']
+Chi = blobs['Chi']
 
 if not os.path.isdir(path):
     os.makedirs(path)
@@ -222,5 +229,9 @@ np.save(path + f'/{kernel_name}_samples.npy', samples)
 
 np.save(path + f'/{kernel_name}_lnprob.npy', ln_samples)
 
-np.save(path + f'/{kernel_name}_meta.npy', sampler.blob)
+np.save(path + f'/{kernel_name}_log_det_S.npy', ln_det_S)
+
+np.save(path + f'/{kernel_name}_S_inv.npy', S_inv)
+
+np.save(path + f'/{kernel_name}_Chi.npy', Chi)
 
