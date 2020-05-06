@@ -4,7 +4,7 @@ import gaussian_process as gp
 from scipy.stats import uniform
 from scipy.special import gamma
 from scipy.misc import factorial
-from scipy.linalg import cholesky, inv, solve_triangular, svd
+from scipy.linalg import cholesky, inv, solve_triangular, svd, solve
 import emcee as em
 from schwimmbad import MPIPool
 import sys
@@ -42,7 +42,7 @@ def timing_model(x):
 M = timing_model(pulsar[:,0])
 F, _, _ = svd(M)
 G = F[:, len(M[0]):]
-data = [pulsar[:,0], G.T @ y, G, sigma]
+data = [pulsar[:,0], M, G.T @ y, G, sigma]
 
 # Pre-calc prior bounds
 
@@ -60,17 +60,17 @@ nu_min, nu_max = (-2, 3)
 
 def loglikelihood(theta, data, kernel=gp.rbf):
 
-	""" Data has structure (x, G.T @ y, G, sigma) """
+	""" Data has structure (x, y, sigma, G.T @ y, G, M) """
 
 	# Update errors
 	efac = 10**theta[-2]
 	equad = 10**theta[-1]
 
-	variance = (efac*data[3])**2 + equad**2
+	variance = (efac*data[2])**2 + equad**2
 
 	# Calculate and update covariance matrix
 	C = kernel(10**theta[:-2], data[0]) + np.diag(variance)
-	GCG = data[2].T @ C @ data[2]
+	GCG = data[4].T @ C @ data[4]
 
 	# Decomp and determinant
 	try:
@@ -82,10 +82,20 @@ def loglikelihood(theta, data, kernel=gp.rbf):
 
 	# Calulate likelihood
 	normalisation = -0.5 * len(G[0]) * np.log(2*np.pi) - 0.5 * ln_det_GCG
-	GCG_D = solve_triangular(GCG_L, data[1], lower=True, check_finite=False)
+	GCG_D = solve_triangular(GCG_L, data[3], lower=True, check_finite=False)
 	ln_L =  normalisation - 0.5 * GCG_D @ GCG_D
 
-	return ln_L
+	# Calculate meta values for marginalization
+
+	C_L = cholesky(C, lower=True, overwrite_a=True, check_finite=False)
+	CLM = solve_triangular(C_L, data[5], lower=True, check_finite=False)
+	S_inv = CLM.T @ CLM
+
+	ln_det_S = -np.linalg.slogdet(S_inv)[1]
+
+	chi = S @ data[5].T @ solve(C, data[1])
+
+	return ln_L, [ln_det_S, S_inv, chi]
 
 def rbf_logprior(theta):
     
@@ -197,6 +207,7 @@ acl = sampler.get_autocorr_time(c=1, quiet=True)
 print("The autocorrelation lengths are %s" %(acl))
 
 samples = sampler.chain[:, Nburnin::int(max(acl)), :].reshape((-1, ndims))
+ln_samples = sampler.lnprobability[:, 5000::max_acl].reshape(-1)
 print("Number of independent samples is {}".format(len(samples)))
 
 if not os.path.isdir(path):
@@ -204,5 +215,7 @@ if not os.path.isdir(path):
 
 np.save(path + f'/{kernel_name}_samples.npy', samples)
 
-np.save(path + f'/{kernel_name}_lnprob.npy', sampler.lnprobability)
+np.save(path + f'/{kernel_name}_lnprob.npy', ln_samples)
+
+np.save(path + f'/{kernel_name}_meta.npy', sampler.blob)
 
