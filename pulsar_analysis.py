@@ -39,10 +39,10 @@ def timing_model(x):
 
 # Set up data with expected structure
 
-M = timing_model(pulsar[:,0])
+M = timing_model(x)
 F, _, _ = svd(M)
 G = F[:, len(M[0]):]
-data = [pulsar[:,0], y, sigma, M, G.T @ y, G, M]
+data = [pulsar[:,0], y, sigma, G.T @ y, G, M]
 
 # Pre-calc prior bounds
 
