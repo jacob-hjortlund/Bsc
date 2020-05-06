@@ -210,7 +210,8 @@ print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_frac
 acl = sampler.get_autocorr_time(c=1, quiet=True)
 print("The autocorrelation lengths are %s" %(acl))
 
-samples = sampler.chain[:, Nburnin::int(max(acl)), :].reshape((-1, ndims))
+max_acl = int(max(acl))
+samples = sampler.chain[:, Nburnin::max_acl, :].reshape((-1, ndims))
 ln_samples = sampler.lnprobability[:, 5000::max_acl].reshape(-1)
 print("Number of independent samples is {}".format(len(samples)))
 
