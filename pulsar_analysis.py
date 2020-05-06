@@ -93,7 +93,7 @@ def loglikelihood(theta, data, kernel=gp.rbf):
 
 	ln_det_S = -np.linalg.slogdet(S_inv)[1]
 
-	chi = S @ data[5].T @ solve(C, data[1])
+	chi = inv(S_inv) @ data[5].T @ solve(C, data[1])
 
 	return ln_L, [ln_det_S, S_inv, chi]
 
