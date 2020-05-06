@@ -169,13 +169,15 @@ def logposterior(theta):
     global logprior
     global kernel
 
-    lp = logprior(theta)
+    lnp = logprior(theta)
     
-    if not np.isfinite(lp):
+    if not np.isfinite(lnp):
         
         return -np.inf
+
+    lnL, meta = loglikelihood(theta, data, kernel=kernel)
     
-    return lp + loglikelihood(theta, data, kernel=kernel)
+    return lnp + lnL, meta
 
 path = f'./pulsar_results/{pulsar_name}/{nsamples}'
 
