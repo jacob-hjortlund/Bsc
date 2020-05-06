@@ -3,7 +3,6 @@ import scipy as sp
 import gaussian_process as gp
 from scipy.stats import uniform
 from scipy.special import gamma
-from scipy.misc import factorial
 from scipy.linalg import cholesky, inv, solve_triangular, svd, solve
 import emcee as em
 from schwimmbad import MPIPool
@@ -95,7 +94,7 @@ def loglikelihood(theta, data, kernel=gp.rbf):
 
 	chi = inv(S_inv) @ data[5].T @ solve(C, data[1])
 
-	return ln_L, [ln_det_S, S_inv, chi]
+	return ln_L, ln_det_S, S_inv, chi
 
 def rbf_logprior(theta):
     
@@ -173,11 +172,11 @@ def logposterior(theta):
     
     if not np.isfinite(lnp):
         
-        return -np.inf
+        return -np.inf, np.nan, np.empty((5,5)), np.empty(5)
 
-    lnL, meta = loglikelihood(theta, data, kernel=kernel)
+    lnL, ln_det_S, S_inv, chi = loglikelihood(theta, data, kernel=kernel)
     
-    return lnp + lnL, meta
+    return lnp + lnL, ln_det_S, S_inv, chi
 
 path = f'./pulsar_results/{pulsar_name}/{nsamples}'
 
@@ -195,7 +194,10 @@ with MPIPool() as pool:
 	np.random.seed()
 	inisamples = kernel_info[kernel_name]['inisamples'](Nens) 
 
-	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool, moves=[(em.moves.DEMove(), 0.8), (em.moves.DESnookerMove(), 0.2),])
+	dtype = [("log_det_S", float), ("S_inv", np.ndarray), ("Chi", np.ndarray)]
+
+	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool, blobs_dtype=dtype,
+								 moves=[(em.moves.DEMove(), 0.8), (em.moves.DESnookerMove(), 0.2),])
 	sampler.run_mcmc(inisamples, Nsamples+Nburnin)
 
 
