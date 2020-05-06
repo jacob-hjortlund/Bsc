@@ -41,6 +41,10 @@ def logposterior(theta):
 	global ndims
 	global N
 
+	if not (np.all(theta <= 2) and np.all(theta >= -2)):
+
+		return -np.inf
+
 	D = np.tile(theta, (N,1))-Chi
 	normalisation = -np.log(N) - 0.5*ndims * np.log(2*np.pi) - 0.5*np.sum(ln_det_S)
 	exponent = 0.5*np.einsum('in,nmi,nm->', D.T, S_inv, D)
