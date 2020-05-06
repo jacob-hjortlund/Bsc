@@ -194,7 +194,7 @@ with MPIPool() as pool:
 	np.random.seed()
 	inisamples = kernel_info[kernel_name]['inisamples'](Nens) 
 
-	dtype = [("log_det_S", np.float64), ("S_inv", np.float64), ("Chi", np.float64)]
+	dtype = [("log_det_S", np.float64), ("S_inv", np.ndarray), ("Chi", np.ndarray)]
 
 	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool, blobs_dtype=dtype,
 								 moves=[(em.moves.DEMove(), 0.8), (em.moves.DESnookerMove(), 0.2),])
