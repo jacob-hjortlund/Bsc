@@ -219,8 +219,8 @@ print("Number of independent samples is {}".format(len(samples)))
 # Meta data
 blobs = sampler.get_blobs()
 ln_det_S = blobs['log_det_S'][500::max_acl,:].reshape(-1)
-S_inv = blobs['S_inv']
-Chi = blobs['Chi']
+S_inv = np.stack(blobs['S_inv'][500::max_acl,:].reshape(-1))
+Chi = np.stack(blobs['Chi'][500::max_acl,:].reshape(-1))
 
 if not os.path.isdir(path):
     os.makedirs(path)
