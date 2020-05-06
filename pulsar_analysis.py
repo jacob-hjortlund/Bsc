@@ -194,7 +194,7 @@ with MPIPool() as pool:
 	np.random.seed()
 	inisamples = kernel_info[kernel_name]['inisamples'](Nens) 
 
-	dtype = [("log_det_S", float), ("S_inv", np.ndarray), ("Chi", np.ndarray)]
+	dtype = [("log_det_S", np.float64), ("S_inv", np.float64), ("Chi", np.float64)]
 
 	sampler = em.EnsembleSampler(Nens, ndims, logposterior, pool=pool, blobs_dtype=dtype,
 								 moves=[(em.moves.DEMove(), 0.8), (em.moves.DESnookerMove(), 0.2),])
@@ -218,7 +218,7 @@ print("Number of independent samples is {}".format(len(samples)))
 
 # Meta data
 blobs = sampler.get_blobs()
-ln_det_S = blobs['log_det_S']
+ln_det_S = blobs['log_det_S'][500::max_acl,:].reshape(-1)
 S_inv = blobs['S_inv']
 Chi = blobs['Chi']
 
