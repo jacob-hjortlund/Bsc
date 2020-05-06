@@ -42,7 +42,7 @@ def timing_model(x):
 M = timing_model(pulsar[:,0])
 F, _, _ = svd(M)
 G = F[:, len(M[0]):]
-data = [pulsar[:,0], M, G.T @ y, G, sigma]
+data = [pulsar[:,0], y, sigma, M, G.T @ y, G, M]
 
 # Pre-calc prior bounds
 
