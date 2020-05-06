@@ -18,9 +18,9 @@ pulsar_name, kernel_name, nburnin, nsamples = sys.argv[1:]
 
 path = f'./pulsar_results/{pulsar_name}/{nsamples}'
 
-S_inv = np.load(path+f'{kernel_name}_S_inv.npy')
-Chi = np.load(path+f'{kernel_name}_Chi.npy')
-ln_det_S = np.load(path+f'{kernel_name}_log_det_S.npy')
+S_inv = np.load(path+f'/{kernel_name}_S_inv.npy')
+Chi = np.load(path+f'/{kernel_name}_Chi.npy')
+ln_det_S = np.load(path+f'/{kernel_name}_log_det_S.npy')
 
 ndims = len(S_inv[0])
 N = len(S_inv)
