@@ -46,10 +46,17 @@ def logposterior(theta):
 		return -np.inf
 
 	D = np.tile(10**theta, (N,1))-Chi
-	normalisation = -np.log(N) - 0.5*ndims * np.log(2*np.pi) - 0.5*np.sum(ln_det_S)
-	exponent = 0.5*np.einsum('in,nmi,nm->', D.T, S_inv, D)
 
-	return normalisation-exponent
+	# Norm
+	normalisation = -np.log(N) - 0.5*ndims * np.log(2*np.pi)
+
+	# Exponent
+	exponent = -0.5*(np.einsum('in,nmi,nm->n', D.T, S_inv, D)+ln_det_S)
+	exponent_max = np.max(exponent)
+	exponent_rescaled = exponent-exponent_max
+	log_sum_exp = exponent_max + np.log(np.sum(np.exp(exponent_rescaled)))
+
+	return normalisation+log_sum_exp
 
 ##################################
 #       MCMC SETUP AND RUN       #
