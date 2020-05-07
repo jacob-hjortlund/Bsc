@@ -14,9 +14,9 @@ import os
 
 # Load precalcs
 
-pulsar_name, kernel_name, nburnin, nsamples = sys.argv[1:]
+pulsar_name, kernel_name, kernel_samples nburnin, nsamples = sys.argv[1:]
 
-path = f'./pulsar_results/{pulsar_name}/{nsamples}'
+path = f'./pulsar_results/{pulsar_name}/{kernel_samples}'
 
 S_inv = np.load(path+f'/{kernel_name}_S_inv.npy')
 Chi = np.load(path+f'/{kernel_name}_Chi.npy')
