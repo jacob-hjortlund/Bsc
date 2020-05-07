@@ -14,7 +14,7 @@ import os
 
 # Load precalcs
 
-pulsar_name, kernel_name, kernel_samples nburnin, nsamples = sys.argv[1:]
+pulsar_name, kernel_name, kernel_samples, nburnin, nsamples = sys.argv[1:]
 
 path = f'./pulsar_results/{pulsar_name}/{kernel_samples}'
 
