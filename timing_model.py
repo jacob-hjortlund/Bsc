@@ -29,9 +29,12 @@ N = len(S_inv)
 #       DEFINE FUNCTIONS       #
 ################################
 
+A_min = -10
+A_max = 2
+
 def amplitude_inisamples(Nens):
 
-	return uniform.rvs(-2, 4, size=(Nens, ndims))
+	return uniform.rvs(A_min, A_max-A_min, size=(Nens, ndims))
 
 def logposterior(theta):
 
@@ -40,8 +43,10 @@ def logposterior(theta):
 	global ln_det_S
 	global ndims
 	global N
+	global A_min
+	global A_max
 
-	if not (np.all(theta <= 2) and np.all(theta >= -2)):
+	if not (np.all(theta <= A_max) and np.all(theta >= A_min)):
 
 		return -np.inf
 
