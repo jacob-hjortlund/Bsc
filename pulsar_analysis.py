@@ -75,7 +75,7 @@ def loglikelihood(theta, data, kernel=gp.rbf):
 	try:
 		GCG_L = cholesky(GCG, lower=True, overwrite_a=True, check_finite=False)
 	except:
-		return -np.inf
+		return -np.inf, np.nan, np.empty((5,5)), np.empty(5)
 
 	ln_det_GCG = np.sum(np.log(np.diag(GCG_L)))
 
