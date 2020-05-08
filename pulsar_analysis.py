@@ -76,7 +76,7 @@ def loglikelihood(theta, data, kernel=gp.rbf):
 	try:
 		GCG_L = cholesky(GCG, lower=True, overwrite_a=True, check_finite=False)
 	except:
-		return -np.inf, np.nan, np.empty((5,5)), np.empty(5)
+		return -np.inf#, np.nan, np.empty((5,5)), np.empty(5)
 
 	ln_det_GCG = np.sum(np.log(np.diag(GCG_L)))
 
@@ -87,15 +87,15 @@ def loglikelihood(theta, data, kernel=gp.rbf):
 
 	# Calculate meta values for marginalization
 
-	C_L = cholesky(C, lower=True, overwrite_a=True, check_finite=False)
-	CLM = solve_triangular(C_L, data[5], lower=True, check_finite=False)
-	S_inv = CLM.T @ CLM
+	#C_L = cholesky(C, lower=True, overwrite_a=True, check_finite=False)
+	#CLM = solve_triangular(C_L, data[5], lower=True, check_finite=False)
+	#S_inv = CLM.T @ CLM
 
-	ln_det_S = -np.linalg.slogdet(S_inv)[1]
+	#ln_det_S = -np.linalg.slogdet(S_inv)[1]
 
-	chi = inv(S_inv) @ data[5].T @ solve(C, data[1])
+	#chi = inv(S_inv) @ data[5].T @ solve(C, data[1])
 
-	return ln_L, ln_det_S, S_inv, chi
+	return ln_L#, ln_det_S, S_inv, chi
 
 def rbf_logprior(theta):
     
@@ -191,11 +191,11 @@ def logposterior(theta):
     
     if not np.isfinite(lnp):
         
-        return -np.inf, np.nan, np.empty((5,5)), np.empty(5)
+        return -np.inf#, np.nan, np.empty((5,5)), np.empty(5)
 
-    lnL, ln_det_S, S_inv, chi = loglikelihood(theta, data, kernel=kernel)
+    lnL = loglikelihood(theta, data, kernel=kernel) #, ln_det_S, S_inv, chi
     
-    return lnp + lnL, ln_det_S, S_inv, chi
+    return lnp + lnL#, ln_det_S, S_inv, chi
 
 path = f'./pulsar_results/{pulsar_name}/{nsamples}'
 
