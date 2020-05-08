@@ -2,6 +2,7 @@ import numpy as np
 import log_bessel as lb
 from scipy.linalg import cholesky, inv
 from scipy.special import loggamma as lg
+from scipy.special import gamma
 
 def rbf(theta,x):
     
@@ -23,6 +24,32 @@ def matern(theta, x):
     log_K = 2*np.log(theta[0]) + (1-theta[1])*np.log(2) - lg(theta[1]) + theta[1]*np.log(u) + lb.log_bessel_k(theta[1], u)
 
     return np.exp(log_K)
+
+def power_law(theta,x):
+
+    # Catch integer gamma values
+
+    tol = 1E-5
+    A = theta[0]
+    y = np.log10(theta[1])
+    nearest_int = np.around(y)
+    dint = y - nearest_int
+    if np.abs(dint) < tol:
+        if dint >= 0:
+            y = nearest_int+tol
+        elif dint < 0:
+            y = nearest_int-tol
+            print(y)
+
+    f_L = 1/(100*(x[-1]-x[0]))
+    tau = 2*np.pi*np.abs(np.subtract.outer(x,x))
+
+    scaling = A**2 * f_L ** (1-y)
+    first_term = gamma_func(1-y)*np.sin(np.pi*y/2)*(f_L*tau)**(y-1)
+    second_term = 1/(1-y) - (f_L*tau)**2 / (6-2*y)
+
+    return scaling*(first_term-second_term)
+
 
 def GP(kernel, theta, data, mu_prior=[], sigma=[]):
 

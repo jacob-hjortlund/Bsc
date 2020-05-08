@@ -52,6 +52,7 @@ sigma_min, sigma_max = sorted((np.log10(np.min(sigma)), 1))#np.log10(3*np.std(da
 efac_min, efac_max = (np.log10(np.min(sigma)), 1)
 equad_min, equad_max = (-8, np.log10(3*np.std(y, ddof=1)))
 nu_min, nu_max = (-2, 3)
+gamma_min, gamma_max = (1,7)
 
 ################################
 #       DEFINE FUNCTIONS       #
@@ -129,7 +130,18 @@ def matern_logprior(theta):
     p_efac = uniform.logpdf(efac, efac_min, efac_max-efac_min)
     p_equad = uniform.logpdf(equad, equad_min, equad_max-equad_min)
     
-    return p_s + p_nu + p_l + p_efac + p_equad 
+    return p_s + p_nu + p_l + p_efac + p_equad
+
+def power_law_logprior(theta):
+
+	s, gamma, efac, equad = theta
+
+	p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
+	p_gamma = uniform.logpdf(gamma, gamma_min, gamma_max-gamma_min)
+	p_efac = uniform.logpdf(efac, efac_min, efac_max-efac_min)
+	p_equad = uniform.logpdf(equad, equad_min, equad_max-equad_min)
+
+	return p_s + p_gamma + p_efac + p_equad
 
 def rbf_inisamples(Nens):
     
@@ -148,9 +160,16 @@ def matern_inisamples(Nens):
                       uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
                       uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
+def power_law_inisamples(Nens):
+
+	return np.vstac((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(gamma_min, gamma_max-gamma_min, size=Nens),
+                      uniform.rvs(efac_min, efac_max-efac_min, size=Nens), uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
+
 kernel_info = {'RBF': {'ndims': 4, 'kernel': gp.rbf, 'logprior': rbf_logprior, 'inisamples': rbf_inisamples}, 
 			   'Local_Periodic': {'ndims': 5, 'kernel': gp.local_periodic, 'logprior': local_periodic_logprior, 'inisamples': local_periodic_inisamples}, 
-			   'Matern': {'ndims': 5, 'kernel': gp.matern, 'logprior': matern_logprior, 'inisamples': matern_inisamples}}
+			   'Matern': {'ndims': 5, 'kernel': gp.matern, 'logprior': matern_logprior, 'inisamples': matern_inisamples},
+			   'PL': {'ndims': 4, 'kernel': gp.power_law, 'logprior': power_law_logprior, 'inisamples': power_law_inisamples}}
+
 
 logprior = kernel_info[kernel_name]['logprior']
 kernel = kernel_info[kernel_name]['kernel']
