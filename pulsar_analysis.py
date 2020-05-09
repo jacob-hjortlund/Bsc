@@ -236,10 +236,10 @@ ln_samples = sampler.lnprobability[:, 5000::max_acl].reshape(-1)
 print("Number of independent samples is {}".format(len(samples)))
 
 # Meta data
-blobs = sampler.get_blobs()
-ln_det_S = blobs['log_det_S'][500::max_acl,:].reshape(-1)
-S_inv = np.stack(blobs['S_inv'][500::max_acl,:].reshape(-1))
-Chi = np.stack(blobs['Chi'][500::max_acl,:].reshape(-1))
+#blobs = sampler.get_blobs()
+#ln_det_S = blobs['log_det_S'][500::max_acl,:].reshape(-1)
+#S_inv = np.stack(blobs['S_inv'][500::max_acl,:].reshape(-1))
+#Chi = np.stack(blobs['Chi'][500::max_acl,:].reshape(-1))
 
 if not os.path.isdir(path):
     os.makedirs(path)
@@ -248,9 +248,9 @@ np.save(path + f'/{kernel_name}_samples.npy', samples)
 
 np.save(path + f'/{kernel_name}_lnprob.npy', ln_samples)
 
-np.save(path + f'/{kernel_name}_log_det_S.npy', ln_det_S)
+#np.save(path + f'/{kernel_name}_log_det_S.npy', ln_det_S)
 
-np.save(path + f'/{kernel_name}_S_inv.npy', S_inv)
+#np.save(path + f'/{kernel_name}_S_inv.npy', S_inv)
 
-np.save(path + f'/{kernel_name}_Chi.npy', Chi)
+#np.save(path + f'/{kernel_name}_Chi.npy', Chi)
 
