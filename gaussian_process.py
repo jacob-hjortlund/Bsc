@@ -45,7 +45,7 @@ def power_law(theta,x):
     tau = 2*np.pi*np.abs(np.subtract.outer(x,x))
 
     scaling = A**2 * f_L ** (1-y)
-    first_term = gamma_func(1-y)*np.sin(np.pi*y/2)*(f_L*tau)**(y-1)
+    first_term = gamma(1-y)*np.sin(np.pi*y/2)*(f_L*tau)**(y-1)
     second_term = 1/(1-y) - (f_L*tau)**2 / (6-2*y)
 
     return scaling*(first_term-second_term)
