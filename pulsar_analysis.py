@@ -162,7 +162,7 @@ def matern_inisamples(Nens):
 
 def power_law_inisamples(Nens):
 
-	return np.vstac((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(gamma_min, gamma_max-gamma_min, size=Nens),
+	return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(gamma_min, gamma_max-gamma_min, size=Nens),
                       uniform.rvs(efac_min, efac_max-efac_min, size=Nens), uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
 kernel_info = {'RBF': {'ndims': 4, 'kernel': gp.rbf, 'logprior': rbf_logprior, 'inisamples': rbf_inisamples}, 
