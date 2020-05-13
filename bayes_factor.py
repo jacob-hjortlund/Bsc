@@ -21,16 +21,33 @@ for root, dirs, files in os.walk('./pulsar_data'):
             data_name = file
 
 pulsar = np.genfromtxt('./pulsar_data/%s' %(data_name), usecols=(0,5,6))
+x = pulsar[:,0]
+y = pulsar[:,1]
+sigma = pulsar[:,2]
 
-data = (pulsar[1::2,0],pulsar[::2,0],pulsar[::2,1],pulsar[1::2,1],pulsar[1::2,2],pulsar[::2,2])
+def timing_model(x):
 
-diff = np.diff(data[1])
+    p = 2*np.pi / 365.25
+
+    return np.array([np.ones(len(x)), x, x**2, np.sin(p*x), np.cos(p*x)]).T
+
+# Set up data with expected structure
+
+M = timing_model(x)
+F, _, _ = svd(M)
+G = F[:, len(M[0]):]
+data = [pulsar[:,0], y, sigma, G.T @ y, G, M]
+
+# Pre-calc prior bounds
+
+diff = np.diff(x)
 p_min = np.log10(2*np.min(diff))
-p_max = np.log10(data[1][-1]-data[1][0])
-sigma_min, sigma_max = sorted((np.log10(np.min(data[5])), 1))#np.log10(3*np.std(data[2], ddof=1))))
-efac_min, efac_max = np.log10(np.min(data[5])), 1
-equad_min, equad_max = -8, np.log10(3*np.std(data[2], ddof=1))
-v_min, v_max = -2, 3
+p_max = np.log10(x[-1]-x[0])
+sigma_min, sigma_max = sorted((np.log10(np.min(sigma)), 1))#np.log10(3*np.std(data[2], ddof=1))))
+efac_min, efac_max = (np.log10(np.min(sigma)), 1)
+equad_min, equad_max = (-8, np.log10(3*np.std(y, ddof=1)))
+nu_min, nu_max = (-2, 3)
+gamma_min, gamma_max = (1,7)
 
 def round_sig(x, sig=1):
     """
@@ -71,6 +88,17 @@ def local_periodic_logprior(theta):
     
     return p_s + p_l + p_p + p_efac + p_equad 
 
+def power_law_logprior(theta):
+
+    s, gamma, efac, equad = theta
+
+    p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
+    p_gamma = uniform.logpdf(gamma, gamma_min, gamma_max-gamma_min)
+    p_efac = uniform.logpdf(efac, efac_min, efac_max-efac_min)
+    p_equad = uniform.logpdf(equad, equad_min, equad_max-equad_min)
+
+    return p_s + p_gamma + p_efac + p_equad
+
 def matern_logprior(theta):
     
     s, nu, l, efac, equad = theta.T
@@ -84,27 +112,39 @@ def matern_logprior(theta):
     return p_s + p_nu + p_l + p_efac + p_equad
 
 def loglikelihood(theta, data, kernel=gp.rbf):
-    
-    """Data has structure (XT, X, y, yT, sigmaT, sigma)"""
+
+    """ Data has structure (x, y, sigma, G.T @ y, G, M) """
 
     # Update errors
     efac = 10**theta[-2]
     equad = 10**theta[-1]
 
-    sigmaT = np.sqrt( ( efac*data[4] )**2 + equad**2 )
-    sigma = np.sqrt(  ( efac*data[5] )**2 + equad**2 )
+    variance = (efac*data[2])**2 + equad**2
 
-    # normalisation
-    norm = -0.5*len(data[0])*np.log(2*np.pi) - np.sum(np.log(sigmaT))
+    # Calculate and update covariance matrix
+    C = kernel(10**theta[:-2], data[0]) + np.diag(variance)
+    GCG = data[4].T @ C @ data[4]
 
-    # chi-squared
-    chisq = np.sum(((data[3]-gp.GP(kernel, theta, data[:3], sigma=sigma)[0])/sigmaT)**2)
+    # Decomp and determinant
+    try:
+        GCG_L = cholesky(GCG, lower=True, overwrite_a=True, check_finite=False)
+    except:
+        return -np.inf
 
-    return norm - 0.5*chisq
+    ln_det_GCG = np.sum(np.log(np.diag(GCG_L)))
+
+    # Calulate likelihood
+    normalisation = -0.5 * len(G[0]) * np.log(2*np.pi) - 0.5 * ln_det_GCG
+    GCG_D = solve_triangular(GCG_L, data[3], lower=True, check_finite=False)
+    ln_L =  normalisation - 0.5 * GCG_D @ GCG_D
+
+    return ln_L
 
 kernel_info = {'RBF': {'ndims': 4, 'kernel': gp.rbf, 'logprior': rbf_logprior}, 
                'Local_Periodic': {'ndims': 5, 'kernel': gp.local_periodic, 'logprior': local_periodic_logprior}, 
-               'Matern': {'ndims': 5, 'kernel': gp.matern, 'logprior': matern_logprior}}
+               'Matern': {'ndims': 5, 'kernel': gp.matern, 'logprior': matern_logprior},
+               'PL': {'ndims': 4, 'kernel': gp.power_law, 'logprior': power_law_logprior}}
+
 
 path = f'./pulsar_results/{pulsar_name}/Bayes_factor/{nsamples}'
 
