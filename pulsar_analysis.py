@@ -48,7 +48,7 @@ data = [pulsar[:,0], y, sigma, G.T @ y, G, M]
 diff = np.diff(x)
 p_min = np.log10(2*np.min(diff))
 p_max = np.log10(x[-1]-x[0])
-sigma_min, sigma_max = sorted((np.log10(np.min(sigma)), 1))#np.log10(3*np.std(data[2], ddof=1))))
+sigma_min, sigma_max = (-15, 1)#sorted((np.log10(np.min(sigma)), 1))#np.log10(3*np.std(data[2], ddof=1))))
 efac_min, efac_max = (np.log10(np.min(sigma)), 1)
 equad_min, equad_max = (-8, np.log10(3*np.std(y, ddof=1)))
 nu_min, nu_max = (-2, 3)
