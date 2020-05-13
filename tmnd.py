@@ -70,7 +70,7 @@ def local_periodic_inisamples(Nens):
 
 def matern_inisamples(Nens):
     
-    return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(v_min, v_max-v_min, size=Nens),
+    return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(nu_min, nu_max-nu_min, size=Nens),
                       uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
                       uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
@@ -92,7 +92,7 @@ local_per_bounds = np.array([[sigma_min, sigma_max],
                              [equad_min, equad_max]])
 
 matern_bounds = np.array([[sigma_min, sigma_max],
-                          [v_min, v_max],
+                          [nu_min, nu_max],
                           [p_min, p_max],
                           [efac_min, efac_max],
                           [equad_min, equad_max]])
