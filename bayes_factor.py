@@ -9,10 +9,7 @@ from schwimmbad import MPIPool
 import sys
 import os
 
-pulsar_name, kernel_name, nburnin, nsamples, mean, sigma = sys.argv[1:]
-
-mean = np.fromstring(mean, sep=',')
-sigma = np.fromstring(sigma, sep=',')
+pulsar_name, kernel_name, nburnin, nsamples = sys.argv[1:]
 
 data_name = 'blank'
 for root, dirs, files in os.walk('./pulsar_data'):
@@ -48,6 +45,14 @@ efac_min, efac_max = (np.log10(np.min(sigma)), 1)
 equad_min, equad_max = (-8, np.log10(3*np.std(y, ddof=1)))
 nu_min, nu_max = (-2, 3)
 gamma_min, gamma_max = (1,7)
+
+# Load mean and sigma
+
+load_path = f'./pulsar_results/{pulsar_name}/{nsamples}/{kernel_name}_samples.npy'
+mcmc_samples = np.load(load_path)
+percentiles =np.percentile(mcmc_samples, [16,50,84], axis=0)
+sigma = np.max(np.diff(percentiles,axis=0),axis=0)
+mean = percentiles[1,:]
 
 def round_sig(x, sig=1):
     """
