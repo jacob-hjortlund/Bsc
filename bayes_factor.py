@@ -3,7 +3,7 @@ import scipy as sp
 import gaussian_process as gp
 from scipy.stats import uniform
 from scipy.stats import multivariate_normal
-from scipy.linalg import inv
+from scipy.linalg import cholesky, inv, solve_triangular, svd, solve
 import emcee as em
 from schwimmbad import MPIPool
 import sys
