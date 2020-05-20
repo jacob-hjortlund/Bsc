@@ -181,10 +181,38 @@ def power_law_inisamples(Nens):
 	return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(gamma_min, gamma_max-gamma_min, size=Nens),
                       uniform.rvs(efac_min, efac_max-efac_min, size=Nens), uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
+def rbf_gwb_inisamples(Nens):
+    
+    return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens),
+                      uniform.rvs(sigma_min, sigma_max+sigma_min), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
+                       uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
+
+def local_periodic_gwb_inisamples(Nens):
+    
+    return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens),
+                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min),
+                      uniform.rvs(efac_min, efac_max-efac_min, size=Nens), uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
+
+def matern_gwb_inisamples(Nens):
+    
+    return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(-2, 5, size=Nens),
+                      uniform.rvs(p_min, p_max-p_min, size=Nens), uniform.rvs(sigma_min, sigma_max-sigma_min),
+                      uniform.rvs(efac_min, efac_max-efac_min, size=Nens), uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
+
+def power_law_gwb_inisamples(Nens):
+
+	return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(gamma_min, gamma_max-gamma_min, size=Nens),
+                      uniform.rvs(sigma_min, sigma_max-sigma_min), uniform.rvs(efac_min, efac_max-efac_min, size=Nens), 
+                      uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
+
 kernel_info = {'RBF': {'ndims': 4, 'kernel': gp.rbf, 'logprior': rbf_logprior, 'inisamples': rbf_inisamples}, 
 			   'Local_Periodic': {'ndims': 5, 'kernel': gp.local_periodic, 'logprior': local_periodic_logprior, 'inisamples': local_periodic_inisamples}, 
 			   'Matern': {'ndims': 5, 'kernel': gp.matern, 'logprior': matern_logprior, 'inisamples': matern_inisamples},
-			   'PL': {'ndims': 4, 'kernel': gp.power_law, 'logprior': power_law_logprior, 'inisamples': power_law_inisamples}}
+			   'PL': {'ndims': 4, 'kernel': gp.power_law, 'logprior': power_law_logprior, 'inisamples': power_law_inisamples},
+			   'RBF_GWB': {'ndims': 5, 'kernel': gp.rbf_gwb, 'logprior': rbf_gwb_logprior, 'inisamples': rbf_gwb_inisamples},
+			   'LP_GWB': {'ndims': 6, 'kernel': gp.local_periodic_gwb, 'logprior': local_periodic_gwb_logprior, 'inisamples': local_periodic_gwb_inisamples},
+			   'Matern_GWB': {'ndims': 6, 'kernel': gp.matern_gwb, 'logprior': matern_gwb_logprior, 'inisamples': matern_gwb_inisamples},
+			   'PL_GWB': {'ndims': 5, 'kernel': gp.power_law_gwb, 'logprior': power_law_gwb_logprior, 'inisamples': power_law_gwb_inisamples}}
 
 
 logprior = kernel_info[kernel_name]['logprior']
