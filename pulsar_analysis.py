@@ -184,7 +184,7 @@ def power_law_inisamples(Nens):
 def rbf_gwb_inisamples(Nens):
     
     return np.vstack((uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(p_min, p_max-p_min, size=Nens),
-                      uniform.rvs(sigma_min, sigma_max+sigma_min, size=Nens), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
+                      uniform.rvs(sigma_min, sigma_max-sigma_min, size=Nens), uniform.rvs(efac_min, efac_max-efac_min, size=Nens),
                        uniform.rvs(equad_min, equad_max-equad_min, size=Nens))).T
 
 def local_periodic_gwb_inisamples(Nens):
