@@ -51,6 +51,36 @@ def power_law(theta,x):
     return scaling*(first_term-second_term)
 
 
+def gwb(theta,x):
+
+    y = 7/3
+    A = theta[-3]
+
+    f_L = 1/(100*(x[-1]-x[0]))
+    tau = 2*np.pi*np.abs(np.subtract.outer(x,x))
+
+    scaling = A**2 * f_L ** (1-y)
+    first_term = gamma(1-y)*np.sin(np.pi*y/2)*(f_L*tau)**(y-1)
+    second_term = 1/(1-y) - (f_L*tau)**2 / (6-2*y)
+
+    return scaling*(first_term-second_term)
+
+def rbf_gwb(theta,x):
+
+    return rbf(theta,x) + gwb(theta, x)
+
+def local_periodic_gwb(theta, x):
+
+    return local_periodic(theta, x) + gwb(theta, x)
+
+def matern_gwb(theta, x):
+
+    return matern(theta, x) + gwb(theta, x)
+
+def power_law_gwb(theta, x):
+
+    return power_law(theta, x) + gwb(theta, x)
+
 def GP(kernel, theta, data, mu_prior=[], sigma=[]):
 
     # Define test points (XT) and training data (X, y)

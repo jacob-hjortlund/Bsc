@@ -98,50 +98,66 @@ def loglikelihood(theta, data, kernel=gp.rbf):
 	return ln_L#, ln_det_S, S_inv, chi
 
 def rbf_logprior(theta):
-    
-    s, l, efac, equad = theta
 
-    p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
-    p_l = uniform.logpdf(l, p_min, p_max-p_min)
-    p_efac = uniform.logpdf(efac, efac_min, efac_max-efac_min)
-    p_equad = uniform.logpdf(equad, equad_min, equad_max-equad_min)
+    p_s = uniform.logpdf(theta[0], sigma_min, sigma_max-sigma_min)
+    p_l = uniform.logpdf(theta[1], p_min, p_max-p_min)
+    p_efac = uniform.logpdf(theta[-2], efac_min, efac_max-efac_min)
+    p_equad = uniform.logpdf(theta[-1], equad_min, equad_max-equad_min)
     
     return p_s + p_l + p_efac + p_equad
 
 def local_periodic_logprior(theta):
-    
-    s, l, p, efac, equad = theta
 
-    p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
-    p_l = uniform.logpdf(l, p_min, p_max-p_min)
-    p_p = uniform.logpdf(p, p_min, p_max-p_min)
-    p_efac = uniform.logpdf(efac, efac_min, efac_max-efac_min)
-    p_equad = uniform.logpdf(equad, equad_min, equad_max-equad_min)
+    p_s = uniform.logpdf(theta[0], sigma_min, sigma_max-sigma_min)
+    p_l = uniform.logpdf(theta[1], p_min, p_max-p_min)
+    p_p = uniform.logpdf(theta[2], p_min, p_max-p_min)
+    p_efac = uniform.logpdf(theta[-2], efac_min, efac_max-efac_min)
+    p_equad = uniform.logpdf(theta[-1], equad_min, equad_max-equad_min)
     
     return p_s + p_l + p_p + p_efac + p_equad 
 
 def matern_logprior(theta):
-    
-    s, nu, l, efac, equad = theta
 
-    p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
-    p_nu = uniform.logpdf(nu, nu_min, nu_max-nu_min)
-    p_l = uniform.logpdf(l, p_min, p_max-p_min)
-    p_efac = uniform.logpdf(efac, efac_min, efac_max-efac_min)
-    p_equad = uniform.logpdf(equad, equad_min, equad_max-equad_min)
+    p_s = uniform.logpdf(theta[0], sigma_min, sigma_max-sigma_min)
+    p_nu = uniform.logpdf(theta[1], nu_min, nu_max-nu_min)
+    p_l = uniform.logpdf(theta[2], p_min, p_max-p_min)
+    p_efac = uniform.logpdf(theta[-2], efac_min, efac_max-efac_min)
+    p_equad = uniform.logpdf(theta[-1], equad_min, equad_max-equad_min)
     
     return p_s + p_nu + p_l + p_efac + p_equad
 
 def power_law_logprior(theta):
 
-	s, gamma, efac, equad = theta
-
-	p_s = uniform.logpdf(s, sigma_min, sigma_max-sigma_min)
-	p_gamma = uniform.logpdf(gamma, gamma_min, gamma_max-gamma_min)
-	p_efac = uniform.logpdf(efac, efac_min, efac_max-efac_min)
-	p_equad = uniform.logpdf(equad, equad_min, equad_max-equad_min)
+	p_s = uniform.logpdf(theta[0], sigma_min, sigma_max-sigma_min)
+	p_gamma = uniform.logpdf(theta[1], gamma_min, gamma_max-gamma_min)
+	p_efac = uniform.logpdf(theta[-2], efac_min, efac_max-efac_min)
+	p_equad = uniform.logpdf(theta[-1], equad_min, equad_max-equad_min)
 
 	return p_s + p_gamma + p_efac + p_equad
+
+def rbf_gwb_logprior(theta):
+
+	p_a = uniform.logpdf(theta[-3], sigma_min, sigma_max-sigma_min)
+
+	return rbf_logprior(theta) + p_a
+
+def local_periodic_gwb_logprior(theta):
+
+	p_a = uniform.logpdf(theta[-3], sigma_min, sigma_max-sigma_min)
+
+	return local_periodic_logprior(theta) + p_a
+
+def matern_gwb_logprior(theta):
+
+	p_a = uniform.logpdf(theta[-3], sigma_min, sigma_max-sigma_min)
+
+	return matern_logprior(theta) + p_a
+
+def power_law_gwb_logprior(theta):
+
+	p_a = uniform.logpdf(theta[-3], sigma_min, sigma_max-sigma_min)
+
+	return power_law_logprior(theta) + p_a
 
 def rbf_inisamples(Nens):
     
