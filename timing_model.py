@@ -5,6 +5,7 @@ from scipy.stats import uniform
 from scipy.special import gamma
 import emcee as em
 from schwimmbad import MPIPool
+from scipy.linalg import cholesky, inv, solve_triangular, svd, solve
 import sys
 import os
 
