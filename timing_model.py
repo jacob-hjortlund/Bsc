@@ -17,13 +17,65 @@ import os
 pulsar_name, kernel_name, kernel_samples, nburnin, nsamples = sys.argv[1:]
 
 path = f'./pulsar_results/{pulsar_name}/{kernel_samples}'
+data_name = 'blank'
+for root, dirs, files in os.walk('./pulsar_data'):
+    for file in files:
+        if pulsar_name in file:
+            data_name = file
 
-S_inv = np.load(path+f'/{kernel_name}_S_inv.npy')
-Chi = np.load(path+f'/{kernel_name}_Chi.npy')
-ln_det_S = np.load(path+f'/{kernel_name}_log_det_S.npy')
+pulsar = np.genfromtxt('./pulsar_data/%s' %(data_name), usecols=(0,5,6))
+x = pulsar[:,0]
+y = pulsar[:,1]
+sigma = pulsar[:,2]
 
-ndims = len(S_inv[0])
-N = len(S_inv)
+gp_samples = np.load(path+f'/{kernel_name}_samples.npy')
+
+def timing_model(x):
+
+	p = 2*np.pi / 365.25
+
+	return np.array([np.ones(len(x)), x, x**2, np.sin(p*x), np.cos(p*x)]).T
+
+M = timing_model(x)
+
+#S_inv = np.load(path+f'/{kernel_name}_S_inv.npy')
+#Chi = np.load(path+f'/{kernel_name}_Chi.npy')
+#ln_det_S = np.load(path+f'/{kernel_name}_log_det_S.npy')
+
+ndims = 5
+N = len(gp_samples)
+
+kernel_info = {'RBF':  gp.rbf, 
+			   'Local_Periodic': gp.local_periodic, 
+			   'Matern': gp.matern,
+			   'PL': gp.power_law}
+
+kernel = kernel_info[kernel_name]
+
+# Precalc necessary values
+
+S_inv = np.empty((N, ndims, ndims))
+Chi = np.empty((N, ndims))
+ln_det_S = np.empty(N)
+
+for i, sample in enumerate(gp_samples):
+
+	# Update errors
+	efac = 10**theta[-2]
+	equad = 10**theta[-1]
+
+	variance = (efac*sigma)**2 + equad**2
+
+	# Calc covariance
+	C = kernel(10**theta[:-2], x) + np.diag(variance)
+
+	C_L = cholesky(C, lower=True, check_finite=False)
+	CLM = solve_triangular(C_L, M, lower=True, check_finite=False)
+	S_inv[i] = CLM.T @ CLM
+
+	ln_det_S[i] = -np.linalg.slogdet(S_inv[i])[1]
+
+	Chi[i] = inv(S_inv[i]) @ M.T @ solve(C, y)
 
 ################################
 #       DEFINE FUNCTIONS       #
