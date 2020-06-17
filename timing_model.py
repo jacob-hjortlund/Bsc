@@ -61,13 +61,13 @@ ln_det_S = np.empty(N)
 for i, sample in enumerate(gp_samples):
 
 	# Update errors
-	efac = 10**theta[-2]
-	equad = 10**theta[-1]
+	efac = 10**sample[-2]
+	equad = 10**sample[-1]
 
 	variance = (efac*sigma)**2 + equad**2
 
 	# Calc covariance
-	C = kernel(10**theta[:-2], x) + np.diag(variance)
+	C = kernel(10**sample[:-2], x) + np.diag(variance)
 
 	C_L = cholesky(C, lower=True, check_finite=False)
 	CLM = solve_triangular(C_L, M, lower=True, check_finite=False)
