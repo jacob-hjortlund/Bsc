@@ -69,8 +69,10 @@ for i, sample in enumerate(gp_samples):
 
 	# Calc covariance
 	C = kernel(10**sample[:-2], x) + np.diag(variance)
-
-	C_L = cholesky(C, lower=True, check_finite=False)
+	try:
+		C_L = cholesky(C, lower=True, check_finite=False)
+	except:
+		continue
 	CLM = solve_triangular(C_L, M, lower=True, check_finite=False)
 	S_inv[i] = CLM.T @ CLM
 
